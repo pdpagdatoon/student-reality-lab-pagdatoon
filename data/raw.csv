@@ -1,0 +1,11 @@
+destination,distance_miles,travel_cost,lodging_per_night,avg_food_per_day,activity_cost
+Atlantic City,110,35,150,60,80
+Cape May,140,45,180,65,70
+Wildwood,135,45,160,60,75
+Seaside Heights,75,25,140,55,65
+Asbury Park,55,20,155,60,70
+Long Beach Island,90,30,170,60,60
+Ocean City NJ,120,40,165,55,60
+Sandy Hook,40,15,0,45,20
+Princeton,45,18,150,55,40
+Delaware Water Gap,70,25,130,50,50

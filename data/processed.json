@@ -1,0 +1,102 @@
+[
+  {
+    "destination": "Atlantic City",
+    "distance_miles": 110,
+    "travel_cost": 35,
+    "lodging_per_night": 150,
+    "avg_food_per_day": 60,
+    "activity_cost": 80,
+    "known_for": "Casinos and boardwalk entertainment",
+    "attractions": "Boardwalk, Casinos, Steel Pier, Beach"
+  },
+  {
+    "destination": "Cape May",
+    "distance_miles": 140,
+    "travel_cost": 45,
+    "lodging_per_night": 180,
+    "avg_food_per_day": 65,
+    "activity_cost": 70,
+    "known_for": "Victorian architecture and beaches",
+    "attractions": "Cape May Lighthouse, Beach, Victorian Houses"
+  },
+  {
+    "destination": "Wildwood",
+    "distance_miles": 135,
+    "travel_cost": 45,
+    "lodging_per_night": 160,
+    "avg_food_per_day": 60,
+    "activity_cost": 75,
+    "known_for": "Amusement parks and boardwalk",
+    "attractions": "Morey's Piers, Boardwalk, Beach"
+  },
+  {
+    "destination": "Seaside Heights",
+    "distance_miles": 75,
+    "travel_cost": 25,
+    "lodging_per_night": 140,
+    "avg_food_per_day": 55,
+    "activity_cost": 65,
+    "known_for": "Beach town with amusement pier",
+    "attractions": "Casino Pier, Beach, Boardwalk"
+  },
+  {
+    "destination": "Asbury Park",
+    "distance_miles": 55,
+    "travel_cost": 20,
+    "lodging_per_night": 155,
+    "avg_food_per_day": 60,
+    "activity_cost": 70,
+    "known_for": "Music scene and beachfront",
+    "attractions": "Stone Pony, Beach, Convention Hall"
+  },
+  {
+    "destination": "Long Beach Island",
+    "distance_miles": 90,
+    "travel_cost": 30,
+    "lodging_per_night": 170,
+    "avg_food_per_day": 60,
+    "activity_cost": 60,
+    "known_for": "Quiet beaches and fishing",
+    "attractions": "Beach, Fishing, Ship Bottom"
+  },
+  {
+    "destination": "Ocean City NJ",
+    "distance_miles": 120,
+    "travel_cost": 40,
+    "lodging_per_night": 165,
+    "avg_food_per_day": 55,
+    "activity_cost": 60,
+    "known_for": "Family-friendly boardwalk",
+    "attractions": "Boardwalk, Beach, Ripley's Believe It or Not"
+  },
+  {
+    "destination": "Sandy Hook",
+    "distance_miles": 40,
+    "travel_cost": 15,
+    "lodging_per_night": 0,
+    "avg_food_per_day": 45,
+    "activity_cost": 20,
+    "known_for": "National park with free camping",
+    "attractions": "Gateway National Recreation Area, Beach, Lighthouse"
+  },
+  {
+    "destination": "Princeton",
+    "distance_miles": 45,
+    "travel_cost": 18,
+    "lodging_per_night": 150,
+    "avg_food_per_day": 55,
+    "activity_cost": 40,
+    "known_for": "Ivy League university town",
+    "attractions": "Princeton University, Nassau Hall, Gardens"
+  },
+  {
+    "destination": "Delaware Water Gap",
+    "distance_miles": 70,
+    "travel_cost": 25,
+    "lodging_per_night": 130,
+    "avg_food_per_day": 50,
+    "activity_cost": 50,
+    "known_for": "Scenic hiking and waterfalls",
+    "attractions": "Delaware Water Gap National Recreation Area, Hiking, Canoeing"
+  }
+]
