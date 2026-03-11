@@ -13,16 +13,36 @@ const DestinationInfo: React.FC<DestinationInfoProps> = ({ selectedDestination, 
     return (
       <div className="chart">
         <h2>Destination Information</h2>
-        <p>Select a destination from the chart above to see what it's known for and its biggest attractions.</p>
+        <p style={{ color: '#64748b' }}>
+          Click any bar on the chart above to see photos, a description, and attractions for that destination.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="chart">
+    <div className="chart destination-info">
       <h2>About {selected.destination}</h2>
-      <p><strong>Known for:</strong> {selected.known_for}</p>
-      <p><strong>Biggest attractions:</strong> {selected.attractions}</p>
+
+      <img
+        className="destination-photo"
+        src={selected.photo_url}
+        alt={`${selected.destination}, New Jersey`}
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+      />
+
+      <p className="destination-known-for">
+        <span className="tag-label">Known for</span> {selected.known_for}
+      </p>
+
+      <p className="destination-about">{selected.about}</p>
+
+      <h3 className="attractions-heading">Top Attractions</h3>
+      <ul className="attractions-list">
+        {selected.attractions.map((attraction, i) => (
+          <li key={i} className="attraction-chip">{attraction}</li>
+        ))}
+      </ul>
     </div>
   );
 };

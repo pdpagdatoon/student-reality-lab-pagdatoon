@@ -1,102 +1,212 @@
-[
+﻿[
   {
     "destination": "Atlantic City",
     "distance_miles": 110,
-    "travel_cost": 35,
-    "lodging_per_night": 150,
-    "avg_food_per_day": 60,
-    "activity_cost": 80,
-    "known_for": "Casinos and boardwalk entertainment",
-    "attractions": "Boardwalk, Casinos, Steel Pier, Beach"
+    "travel_cost": 48,
+    "lodging_per_night": 135,
+    "avg_food_per_day": 65,
+    "activity_cost": 95,
+    "known_for": "Casinos, boardwalk entertainment, and seaside dining",
+    "about": "Atlantic City is New Jersey's entertainment capital, famous for its iconic mile-long boardwalk lined with casinos, restaurants, and shops. Spring break is an ideal time to visit — crowds are smaller than summer but the beaches are opening up and hotel rates are still below peak-season prices. Students can gamble at world-class casinos, catch live shows, and indulge in some of the best seafood on the East Coast.",
+    "attractions": [
+      "Atlantic City Boardwalk",
+      "Steel Pier Amusement Park",
+      "Resorts Casino (America's first legal casino)",
+      "Absecon Lighthouse",
+      "Ripley's Believe It or Not!",
+      "White House Sub Shop (est. 1946)",
+      "Atlantic City Aquarium",
+      "Caesars Atlantic City"
+    ],
+    "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/A_sunset_view_of_the_beach_in_Atlantic_City%2C_NJ.jpg/800px-A_sunset_view_of_the_beach_in_Atlantic_City%2C_NJ.jpg"
   },
   {
     "destination": "Cape May",
     "distance_miles": 140,
-    "travel_cost": 45,
-    "lodging_per_night": 180,
-    "avg_food_per_day": 65,
-    "activity_cost": 70,
-    "known_for": "Victorian architecture and beaches",
-    "attractions": "Cape May Lighthouse, Beach, Victorian Houses"
+    "travel_cost": 52,
+    "lodging_per_night": 165,
+    "avg_food_per_day": 70,
+    "activity_cost": 85,
+    "known_for": "Victorian architecture, whale watching, and a historic National Landmark District",
+    "about": "Cape May is one of the oldest seaside resorts in the United States and a National Historic Landmark District. Its streets are lined with over 600 preserved Victorian homes painted in pastel hues, making it feel like a living museum. Spring is prime whale and dolphin watching season, and the Cape May Spring Festival fills the town with birding events and food tours well before the summer crowds arrive.",
+    "attractions": [
+      "Cape May Lighthouse (1859)",
+      "Historic Victorian District walking tours",
+      "Cape May-Lewes Ferry",
+      "Whale and dolphin watching tours",
+      "Washington Street Mall",
+      "Sunset Beach and Cape May diamonds",
+      "Cape May Bird Observatory",
+      "Cold Spring Village (living history)"
+    ],
+    "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Cape_May_Beach_Ave_from_the_sea_3.JPG/800px-Cape_May_Beach_Ave_from_the_sea_3.JPG"
   },
   {
     "destination": "Wildwood",
     "distance_miles": 135,
-    "travel_cost": 45,
-    "lodging_per_night": 160,
-    "avg_food_per_day": 60,
-    "activity_cost": 75,
-    "known_for": "Amusement parks and boardwalk",
-    "attractions": "Morey's Piers, Boardwalk, Beach"
+    "travel_cost": 50,
+    "lodging_per_night": 120,
+    "avg_food_per_day": 62,
+    "activity_cost": 80,
+    "known_for": "Free beach, Doo Wop architecture, and a 38-block amusement boardwalk",
+    "about": "Wildwood is pure Jersey Shore nostalgia — America's largest free beach, a retro neon-lit boardwalk stretching 38 blocks, and three amusement piers with over 100 rides. The 1950s-60s Doo Wop motel architecture gives the town a pop-art identity unlike anywhere else. Spring is great because parking is free, coasters open for the season, and the beach is uncrowded.",
+    "attractions": [
+      "Morey's Piers (3 amusement piers, 100+ rides)",
+      "Wildwoods Boardwalk (38 blocks, free beach)",
+      "Doo Wop Preservation League Museum",
+      "Crest Pier fishing",
+      "Nickels Midway Pier water park",
+      "George F. Boyer Historical Museum",
+      "Cape May-Lewes Ferry (departures nearby)",
+      "Rambler Road craft brewery strip"
+    ],
+    "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Sunrise_in_Wildwood_New_Jersey_with_Atlantic_Ocean_looking_northeast.jpg/800px-Sunrise_in_Wildwood_New_Jersey_with_Atlantic_Ocean_looking_northeast.jpg"
   },
   {
     "destination": "Seaside Heights",
     "distance_miles": 75,
-    "travel_cost": 25,
-    "lodging_per_night": 140,
-    "avg_food_per_day": 55,
-    "activity_cost": 65,
-    "known_for": "Beach town with amusement pier",
-    "attractions": "Casino Pier, Beach, Boardwalk"
+    "travel_cost": 35,
+    "lodging_per_night": 110,
+    "avg_food_per_day": 58,
+    "activity_cost": 70,
+    "known_for": "Spring break vibe, Casino Pier coasters over the ocean, and MTV Jersey Shore filming location",
+    "about": "Seaside Heights is the quintessential college spring break destination. Casino Pier juts dramatically over the ocean with roller coasters, the boardwalk buzzes with arcades and food stands, and the dense apartment scene makes for budget-friendly group rentals. It gained pop culture fame from MTV's Jersey Shore filmed right on the boardwalk, but the actual town is a lively shore community with great people-watching.",
+    "attractions": [
+      "Casino Pier (roller coasters over the ocean)",
+      "Breakwater Beach Water Park",
+      "Seaside Heights Boardwalk",
+      "Lucky Leo's Arcade",
+      "Funtown Pier",
+      "Berkeley Island County Park",
+      "Barnegat Bay kayaking",
+      "Jenkinson's Aquarium (nearby Point Pleasant)"
+    ],
+    "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Seaside_Heights_Casino_Pier_with_Hydrus_in_background.jpg/800px-Seaside_Heights_Casino_Pier_with_Hydrus_in_background.jpg"
   },
   {
     "destination": "Asbury Park",
     "distance_miles": 55,
-    "travel_cost": 20,
-    "lodging_per_night": 155,
-    "avg_food_per_day": 60,
-    "activity_cost": 70,
-    "known_for": "Music scene and beachfront",
-    "attractions": "Stone Pony, Beach, Convention Hall"
+    "travel_cost": 28,
+    "lodging_per_night": 130,
+    "avg_food_per_day": 65,
+    "activity_cost": 75,
+    "known_for": "Live music, Art Deco boardwalk, and a vibrant creative scene",
+    "about": "Asbury Park is New Jersey's most eclectic beach city — a once-declining resort reborn as a hub for indie music, craft food, and an LGBTQ+-welcoming culture. The Stone Pony is one of America's most legendary live-music venues (Bruce Springsteen's home stage), and the Art Deco Convention Hall anchors a newly revitalized beachfront. Spring is ideal: concert season kicks off, beach bars open, and you beat the packed summer crowds.",
+    "attractions": [
+      "The Stone Pony (legendary live music venue)",
+      "Asbury Park Boardwalk and Convention Hall",
+      "Paramount Theatre (Art Deco landmark)",
+      "House of Independents music venue",
+      "Wonder Bar",
+      "Asbury Hotel rooftop bar",
+      "Cookman Avenue dining, art galleries and shops",
+      "Deal Lake waterfront and canoe launch"
+    ],
+    "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Paramount_Theatre_Asbury_Park_Convention_Hall_NJ2.jpg/800px-Paramount_Theatre_Asbury_Park_Convention_Hall_NJ2.jpg"
   },
   {
     "destination": "Long Beach Island",
     "distance_miles": 90,
-    "travel_cost": 30,
-    "lodging_per_night": 170,
-    "avg_food_per_day": 60,
-    "activity_cost": 60,
-    "known_for": "Quiet beaches and fishing",
-    "attractions": "Beach, Fishing, Ship Bottom"
+    "travel_cost": 40,
+    "lodging_per_night": 155,
+    "avg_food_per_day": 62,
+    "activity_cost": 65,
+    "known_for": "18-mile barrier island with quiet beaches, Old Barney lighthouse, and fresh seafood",
+    "about": "Long Beach Island is an 18-mile-long barrier island connected to the mainland by a single causeway, giving it a true island getaway feel. The charming town of Beach Haven anchors the south end with boutiques, restaurants, and an amusement park. The Barnegat Lighthouse (Old Barney) offers stunning panoramic views, and spring brings the island back to life before summer crowds and summer prices hit.",
+    "attractions": [
+      "Barnegat Lighthouse State Park (Old Barney)",
+      "Beach Haven shops, bars and restaurants",
+      "Surflight Theatre (live productions)",
+      "Fantasy Island Amusement Park",
+      "Long Beach Island Foundation of the Arts",
+      "Holgate Wildlife Refuge and birding",
+      "Bay-side kayaking and paddleboarding",
+      "Schooner's Wharf seafood docks"
+    ],
+    "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Holgate_beach_bulkhead.jpg/800px-Holgate_beach_bulkhead.jpg"
   },
   {
     "destination": "Ocean City NJ",
     "distance_miles": 120,
-    "travel_cost": 40,
-    "lodging_per_night": 165,
-    "avg_food_per_day": 55,
-    "activity_cost": 60,
-    "known_for": "Family-friendly boardwalk",
-    "attractions": "Boardwalk, Beach, Ripley's Believe It or Not"
+    "travel_cost": 45,
+    "lodging_per_night": 125,
+    "avg_food_per_day": 58,
+    "activity_cost": 70,
+    "known_for": "Family-friendly dry town, 2.5-mile boardwalk, and Shriver's salt water taffy",
+    "about": "Ocean City calls itself America's Greatest Family Resort and has been a dry (no-alcohol) town since 1879, giving it a unique atmosphere on the Jersey Shore. The 2.5-mile boardwalk is lined with pizza shops, taffy stores, and amusement rides. Spring brings the Doo Dah Parade and the start of boardwalk food season before summer traffic hits, making it a relaxed and affordable visit.",
+    "attractions": [
+      "Ocean City Boardwalk (2.5 miles)",
+      "Gillian's Wonderland Pier",
+      "Shriver's Taffy Shop (est. 1898)",
+      "Ripley's Believe It or Not!",
+      "Music Pier (free concerts)",
+      "Corson's Inlet State Park",
+      "Cape May County Park and Zoo (free)",
+      "Ocean City Historical Museum"
+    ],
+    "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Ocean_City_NJ_beach_looking_south_from_Music_Pier.jpeg/800px-Ocean_City_NJ_beach_looking_south_from_Music_Pier.jpeg"
   },
   {
     "destination": "Sandy Hook",
     "distance_miles": 40,
-    "travel_cost": 15,
+    "travel_cost": 18,
     "lodging_per_night": 0,
-    "avg_food_per_day": 45,
-    "activity_cost": 20,
-    "known_for": "National park with free camping",
-    "attractions": "Gateway National Recreation Area, Beach, Lighthouse"
+    "avg_food_per_day": 48,
+    "activity_cost": 25,
+    "known_for": "Free national park beaches, America's oldest lighthouse (1764), and Fort Hancock",
+    "about": "Sandy Hook is a 6-mile barrier spit managed by the National Park Service as part of Gateway National Recreation Area. It offers some of the most pristine beaches on the Jersey Shore for free, plus Fort Hancock (an 1890s Army post) and the oldest operating lighthouse in the US (built 1764). It is the ultimate budget destination — pack your own food and the whole day costs almost nothing.",
+    "attractions": [
+      "Sandy Hook Lighthouse (oldest operating in the US, built 1764)",
+      "Fort Hancock Historic District",
+      "Gunnison Beach",
+      "Sandy Hook Bird Observatory",
+      "Nike Missile Site SF-88",
+      "Spermaceti Cove and tidepooling",
+      "Kayak and paddleboard rentals",
+      "New York City skyline views across the bay"
+    ],
+    "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Sandy_Hook_Aerial_1_%2811022025%29.jpg/800px-Sandy_Hook_Aerial_1_%2811022025%29.jpg"
   },
   {
     "destination": "Princeton",
     "distance_miles": 45,
-    "travel_cost": 18,
-    "lodging_per_night": 150,
-    "avg_food_per_day": 55,
-    "activity_cost": 40,
-    "known_for": "Ivy League university town",
-    "attractions": "Princeton University, Nassau Hall, Gardens"
+    "travel_cost": 22,
+    "lodging_per_night": 115,
+    "avg_food_per_day": 60,
+    "activity_cost": 50,
+    "known_for": "Princeton University, Ivy League campus architecture, and Einstein's hometown",
+    "about": "Princeton offers a completely different kind of spring break — an Ivy League college town packed with world-class architecture, renowned free museums, and excellent independent restaurants and coffee shops. Strolling the Princeton University campus costs nothing, the art museum has no admission fee, and Witherspoon Street's dining scene punches above its weight. Albert Einstein lived and worked here and his former home on Mercer Street is a quiet pilgrimage.",
+    "attractions": [
+      "Princeton University campus walking tour (free)",
+      "Princeton University Art Museum (free)",
+      "Nassau Hall (1756, oldest campus building)",
+      "Albert Einstein's former house on Mercer Street",
+      "Princeton Battlefield State Park",
+      "Marquand Park arboretum (free)",
+      "Small World Coffee (beloved local cafe)",
+      "Labyrinth Books and independent shops"
+    ],
+    "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Lower_Pyne_%28Princeton%29.jpg/800px-Lower_Pyne_%28Princeton%29.jpg"
   },
   {
     "destination": "Delaware Water Gap",
     "distance_miles": 70,
-    "travel_cost": 25,
-    "lodging_per_night": 130,
-    "avg_food_per_day": 50,
-    "activity_cost": 50,
-    "known_for": "Scenic hiking and waterfalls",
-    "attractions": "Delaware Water Gap National Recreation Area, Hiking, Canoeing"
+    "travel_cost": 32,
+    "lodging_per_night": 105,
+    "avg_food_per_day": 55,
+    "activity_cost": 60,
+    "known_for": "Appalachian Trail, spring waterfalls, and Delaware River outdoor recreation",
+    "about": "Delaware Water Gap National Recreation Area spans 70,000 acres of northwest New Jersey and northeast Pennsylvania, offering world-class outdoor adventure at remarkably low cost. The Appalachian Trail passes right through and the views from Mt. Tammany looking down at the river are among the best in the Mid-Atlantic. Spring is ideal — waterfalls like Dingmans Falls run at full power from snowmelt, wildflowers bloom, and trails are almost empty compared to summer.",
+    "attractions": [
+      "Mt. Tammany summit hike (panoramic Delaware River views)",
+      "Dingmans Falls and Silverthread Falls",
+      "Bushkill Falls (Niagara of Pennsylvania)",
+      "Delaware River canoeing and kayaking",
+      "Appalachian Trail hiking",
+      "Millbrook Village (19th-century living history)",
+      "Blue Mountain Lake canoe area",
+      "Kittatinny Ridge hawk watching"
+    ],
+    "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Delaware_Water_Gap.jpg/800px-Delaware_Water_Gap.jpg"
   }
 ]

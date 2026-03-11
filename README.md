@@ -31,20 +31,20 @@ College students in New Jersey planning low-cost spring break trips from the New
   - Destination cost breakdown (component costs)
   - Distance vs total cost (scatter)
 - Add controls for budget, trip length, and lodging share count.
-- Add dynamic annotation tied to computed cheapest/over-budget outcomes.
+- Add a destination details panel with a photo, short description, and attractions.
 
 ### Result
 
 - Expect to show lodging as the largest cost driver for multi-day trips.
-- Report headline metrics such as cheapest destination cost under current controls and number of affordable destinations.
+- Help viewers compare destinations and then click into each one for context beyond the cost charts.
 
 ## Dataset & Provenance
 
-- Source type: Instructor-provided starter dataset of estimated costs.
-- Scope: 10 NJ destinations, estimated costs from Newark, NJ.
-- Retrieval date: March 9, 2026.
-- Usage: Educational/non-commercial class project data.
-- Notes file: [data/notes.md](data/notes.md)
+- **Source**: Refreshed March 2026 estimates based on Booking.com, Expedia, and Airbnb spring break pricing; NJ Transit fares; AAA mileage rates; Project Time Off travel data.
+- **Scope**: 10 NJ destinations, round-trip costs from Newark, NJ for March 2026.
+- **Retrieval date**: March 10, 2026.
+- **Usage**: Educational/non-commercial class project.
+- **Full methodology & live API options**: See [data/notes.md](data/notes.md)
 
 ## Data Dictionary
 
@@ -57,7 +57,9 @@ College students in New Jersey planning low-cost spring break trips from the New
 | avg_food_per_day | Estimated daily food cost | USD/day |
 | activity_cost | Estimated fixed activity cost per trip | USD |
 | known_for | Destination identity summary | text |
-| attractions | Top attractions at destination | text |
+| about | Short destination description for the detail card | text |
+| attractions | Top attractions at destination | list of text |
+| photo_url | Photo used in the destination detail card | URL |
 
 ## Data Viability Audit
 
@@ -107,7 +109,8 @@ College students in New Jersey planning low-cost spring break trips from the New
 - Budget slider (`$100–$1000`) updates affordability status and chart emphasis.
 - Trip length selector (`1–5 days`) recalculates lodging and food portions.
 - Lodging share selector (`1, 2, 3, 4`) divides lodging cost by group size.
-- Destination selection (bar click or dropdown) updates breakdown and destination details.
+- Destination selection (bar click or dropdown) updates the breakdown chart and the destination detail card.
+- Destination detail card displays a photo, a short destination summary, and notable attractions.
 
 ## Limits & What I’d Do Next
 
@@ -117,7 +120,7 @@ College students in New Jersey planning low-cost spring break trips from the New
 
 ## Deployment Link
 
-https://spring-break-nj-budget.vercel.app/ (placeholder)
+https://pdpagdatoon.github.io/student-reality-lab-pagdatoon/
 
 ## Quick Run
 

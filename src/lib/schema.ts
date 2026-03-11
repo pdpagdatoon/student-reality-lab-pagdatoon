@@ -6,7 +6,9 @@ export interface RawDestinationRow {
   avg_food_per_day: number;
   activity_cost: number;
   known_for: string;
-  attractions: string;
+  about: string;
+  attractions: string[];
+  photo_url: string;
 }
 
 export interface DestinationRecord extends RawDestinationRow {

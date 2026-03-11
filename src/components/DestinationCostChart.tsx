@@ -11,9 +11,10 @@ const DestinationCostChart: React.FC<DestinationCostChartProps> = ({ data, onSel
   return (
     <div className="chart">
       <h2>Destination Cost Comparison</h2>
-      <ResponsiveContainer width="100%" height={400}>
-        <BarChart 
-          data={data} 
+      <ResponsiveContainer width="100%" height={460}>
+        <BarChart
+          data={data}
+          margin={{ top: 10, right: 20, left: 20, bottom: 80 }}
           onClick={(state) => {
             if (state && state.activePayload && state.activePayload[0]) {
               onSelectDestination(state.activePayload[0].payload.destination);
@@ -21,10 +22,20 @@ const DestinationCostChart: React.FC<DestinationCostChartProps> = ({ data, onSel
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="destination" />
-          <YAxis label={{ value: 'Total Trip Cost ($)', angle: -90, position: 'insideLeft' }} />
+          <XAxis
+            dataKey="destination"
+            angle={-40}
+            textAnchor="end"
+            interval={0}
+            tick={{ fontSize: 12, fill: '#334155' }}
+          />
+          <YAxis
+            tickFormatter={(v) => `$${v}`}
+            label={{ value: 'Total Trip Cost ($)', angle: -90, position: 'insideLeft', offset: 10, fill: '#475569' }}
+            tick={{ fontSize: 12 }}
+          />
           <Tooltip formatter={(value) => [`$${value}`, 'Total Cost']} />
-          <Bar dataKey="total_trip_cost">
+          <Bar dataKey="total_trip_cost" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.affordability === 'affordable' ? '#14b8a6' : '#fb7185'} />
             ))}
