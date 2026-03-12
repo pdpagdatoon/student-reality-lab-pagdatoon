@@ -23,6 +23,10 @@ const CostBreakdown: React.FC<CostBreakdownProps> = ({ data, selectedDestination
   return (
     <div className="chart">
       <h2>Cost Breakdown</h2>
+      <p style={{ color: '#64748b', marginTop: 0, marginBottom: 16, fontSize: 14 }}>
+        How the total cost splits between travel, lodging, food, and activities for the selected destination.
+        Lodging is adjusted by your group size setting.
+      </p>
       {!selected && (
         <select onChange={(e) => onSelectDestination(e.target.value)} defaultValue="">
           <option value="" disabled>Select a destination</option>

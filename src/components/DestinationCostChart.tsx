@@ -11,6 +11,10 @@ const DestinationCostChart: React.FC<DestinationCostChartProps> = ({ data, onSel
   return (
     <div className="chart">
       <h2>Destination Cost Comparison</h2>
+      <p style={{ color: '#64748b', marginTop: 0, marginBottom: 16, fontSize: 14 }}>
+        Total estimated trip cost for each destination under your current budget, trip length, and lodging settings.
+        Teal bars are within budget; red bars exceed it. Click any bar to explore its cost breakdown.
+      </p>
       <ResponsiveContainer width="100%" height={460}>
         <BarChart
           data={data}
