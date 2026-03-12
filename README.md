@@ -40,10 +40,17 @@ College students in New Jersey planning low-cost spring break trips from the New
 
 ## Dataset & Provenance
 
-- **Source**: Refreshed March 2026 estimates based on Booking.com, Expedia, and Airbnb spring break pricing; NJ Transit fares; AAA mileage rates; Project Time Off travel data.
+- **Source links**:
+  - Booking.com (lodging baseline): https://www.booking.com/
+  - Expedia (lodging baseline): https://www.expedia.com/
+  - Airbnb (lodging baseline): https://www.airbnb.com/
+  - NJ Transit (fare references): https://www.njtransit.com/
+  - AAA mileage rates (travel assumptions): https://newsroom.aaa.com/tag/mileage-rate/
+  - Project Time Off travel spending references: https://www.projecttimeoff.com/
+- **Method**: Refreshed March 2026 estimates synthesized from the sources above (details in `data/notes.md`).
 - **Scope**: 10 NJ destinations, round-trip costs from Newark, NJ for March 2026.
-- **Retrieval date**: March 10, 2026.
-- **Usage**: Educational/non-commercial class project.
+- **Retrieval date**: February 28, 2026.
+- **License/usage**: Educational, non-commercial classroom use; this repo stores only student-generated estimates and not redistributed proprietary source datasets.
 - **Full methodology & live API options**: See [data/notes.md](data/notes.md)
 
 ## Data Dictionary
