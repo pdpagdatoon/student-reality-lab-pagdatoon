@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "vite",
+    "start": "npm run dev:all",
+    "start:web": "vite",
+    "start:api": "node api/server.js",
     "dev": "vite",
     "dev:api": "node api/server.js",
     "dev:all": "concurrently -n \"vite,api\" -c \"cyan,green\" \"vite\" \"node api/server.js\"",
