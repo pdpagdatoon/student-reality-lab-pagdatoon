@@ -127,7 +127,7 @@ College students in New Jersey planning low-cost spring break trips from the New
 
 ## Deployment Link
 
-https://pdpagdatoon.github.io/student-reality-lab-pagdatoon/
+https://student-reality-lab-pagdatoon-hcbcjs5i9-pdpag.vercel.app/
 
 ## Quick Run
 
