@@ -38,7 +38,16 @@ const DestinationCostChart: React.FC<DestinationCostChartProps> = ({ data, onSel
             label={{ value: 'Total Trip Cost ($)', angle: -90, position: 'insideLeft', offset: 10, fill: '#475569' }}
             tick={{ fontSize: 12 }}
           />
-          <Tooltip formatter={(value) => [`$${value}`, 'Total Cost']} />
+          <Tooltip
+            formatter={(value, _name, payload) => {
+              const row = payload?.payload as DestinationRecord | undefined;
+              if (!row) return [`$${value}`, 'Total Cost'];
+              return [
+                `$${row.total_trip_cost} (range: $${row.total_trip_cost_low}-$${row.total_trip_cost_high})`,
+                'Estimated Total',
+              ];
+            }}
+          />
           <Bar dataKey="total_trip_cost" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.affordability === 'affordable' ? '#14b8a6' : '#fb7185'} />

@@ -66,7 +66,7 @@ College students in New Jersey planning low-cost spring break trips from the New
 | known_for | Destination identity summary | text |
 | about | Short destination description for the detail card | text |
 | attractions | Top attractions at destination | list of text |
-| photo_url | Photo used in the destination detail card | URL |
+| photo_url | Source photo reference from dataset (app now prefers local images in `public/images/destinations`) | URL |
 
 ## Data Viability Audit
 
@@ -117,7 +117,7 @@ College students in New Jersey planning low-cost spring break trips from the New
 - Trip length selector (`1–5 days`) recalculates lodging and food portions.
 - Lodging share selector (`1, 2, 3, 4`) divides lodging cost by group size.
 - Destination selection (bar click or dropdown) updates the breakdown chart and the destination detail card.
-- Destination detail card displays a photo, a short destination summary, and notable attractions.
+- Destination detail card displays a local photo, a short destination summary, a map with coordinates, and notable attractions.
 
 ## Limits & What I’d Do Next
 
@@ -132,5 +132,18 @@ https://pdpagdatoon.github.io/student-reality-lab-pagdatoon/
 ## Quick Run
 
 - `npm install`
-- `npm run dev`
+- `npm run dev:all` (recommended: frontend + API for full chatbot features)
+- `npm run dev` (frontend only)
 - `npm run build`
+
+## Added Reliability Features
+
+- Chat API hardening: request validation, rate limiting, and health endpoint (`GET /api/health`)
+- Lightweight analytics endpoint (`POST /api/analytics`) for interaction telemetry
+- Cost confidence bands shown in destination chart tooltips (`low`/`high` estimate range)
+- Data transparency panel in the dashboard with refreshed date and methodology details
+
+## Maintenance Scripts
+
+- `npm run check:hotel-links` validates hotel listing links in `api/server.js`
+- `npm run refresh:data-metadata` updates `displayedAsOf` in `src/lib/metadata.ts`

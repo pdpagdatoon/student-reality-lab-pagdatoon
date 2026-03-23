@@ -1,5 +1,7 @@
 import { RawDestinationRow, DestinationRecord, UserControls } from './schema';
 
+const ESTIMATE_BAND_PCT = 0.12;
+
 export const computeEffectiveLodging = (lodgingPerNight: number, lodgingMode: number): number => {
   return lodgingPerNight / lodgingMode;
 };
@@ -31,9 +33,13 @@ export const enrichDestinationRecords = (rawData: RawDestinationRow[], controls:
       controls.tripLength
     );
     const affordability = computeAffordability(totalTripCost, controls.budget);
+    const totalLow = Math.round(totalTripCost * (1 - ESTIMATE_BAND_PCT));
+    const totalHigh = Math.round(totalTripCost * (1 + ESTIMATE_BAND_PCT));
     return {
       ...row,
       total_trip_cost: totalTripCost,
+      total_trip_cost_low: totalLow,
+      total_trip_cost_high: totalHigh,
       affordability
     };
   });

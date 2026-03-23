@@ -13,6 +13,8 @@ export interface RawDestinationRow {
 
 export interface DestinationRecord extends RawDestinationRow {
   total_trip_cost: number;
+  total_trip_cost_low: number;
+  total_trip_cost_high: number;
   affordability: 'affordable' | 'over-budget';
 }
 

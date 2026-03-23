@@ -1,5 +1,8 @@
 import React from 'react';
 import { DestinationRecord } from '../lib/schema';
+import { getFallbackImageDataUrl } from '../lib/imageFallback';
+import { getDestinationBackupImage, getDestinationPrimaryImage } from '../lib/destinationImages';
+import { DESTINATION_LOCATION_META, buildGoogleMapsEmbedUrl, buildGoogleMapsOpenUrl } from '../lib/locationMeta';
 
 interface DestinationInfoProps {
   selectedDestination?: string;
@@ -8,6 +11,7 @@ interface DestinationInfoProps {
 
 const DestinationInfo: React.FC<DestinationInfoProps> = ({ selectedDestination, data }) => {
   const selected = data.find(d => d.destination === selectedDestination);
+  const locationMeta = selected ? DESTINATION_LOCATION_META[selected.destination] : undefined;
 
   if (!selected) {
     return (
@@ -26,9 +30,17 @@ const DestinationInfo: React.FC<DestinationInfoProps> = ({ selectedDestination, 
 
       <img
         className="destination-photo"
-        src={selected.photo_url}
+        src={getDestinationPrimaryImage(selected.destination)}
         alt={`${selected.destination}, New Jersey`}
-        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+        onError={(e) => {
+          const img = e.currentTarget;
+          if (!img.dataset.backupApplied) {
+            img.dataset.backupApplied = '1';
+            img.src = getDestinationBackupImage(selected.destination);
+            return;
+          }
+          img.src = getFallbackImageDataUrl(selected.destination);
+        }}
       />
 
       <p className="destination-known-for">
@@ -36,6 +48,25 @@ const DestinationInfo: React.FC<DestinationInfoProps> = ({ selectedDestination, 
       </p>
 
       <p className="destination-about">{selected.about}</p>
+
+      {locationMeta && (
+        <div className="destination-map-wrap">
+          <h3 className="attractions-heading">Map Location</h3>
+          <iframe
+            className="destination-map"
+            title={`${selected.destination} map`}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            src={buildGoogleMapsEmbedUrl(locationMeta)}
+          />
+          <p className="destination-map-meta">
+            Coordinates: {locationMeta.latitude.toFixed(4)}, {locationMeta.longitude.toFixed(4)} ·{' '}
+            <a href={buildGoogleMapsOpenUrl(locationMeta)} target="_blank" rel="noopener noreferrer">
+              Open in Google Maps
+            </a>
+          </p>
+        </div>
+      )}
 
       <h3 className="attractions-heading">Top Attractions</h3>
       <ul className="attractions-list">
