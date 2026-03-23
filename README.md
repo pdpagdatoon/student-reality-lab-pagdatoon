@@ -136,6 +136,17 @@ https://pdpagdatoon.github.io/student-reality-lab-pagdatoon/
 - `npm run dev` (frontend only)
 - `npm run build`
 
+## Vercel Deployment
+
+- Build command: `npm run build`
+- Output directory: `dist`
+- Required environment variable: `OPENAI_API_KEY`
+- API routes for Vercel serverless are in `api/chat.js`, `api/health.js`, and `api/analytics.js`
+
+Notes:
+- `npm start` runs both frontend and local API (`dev:all`) for local development.
+- For GitHub Pages style subpath deployments, set `VITE_BASE_PATH` (example: `/student-reality-lab-pagdatoon/`).
+
 ## Added Reliability Features
 
 - Chat API hardening: request validation, rate limiting, and health endpoint (`GET /api/health`)
