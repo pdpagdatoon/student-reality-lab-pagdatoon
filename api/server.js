@@ -51,6 +51,7 @@ const DESTINATION_HOTELS = {
     { name: 'Impala Island Inn Ocean City', priceRange: '$65–$100', tag: 'Budget Pick', platform: 'Booking.com', url: 'https://www.booking.com/hotel/us/impala-island-inn.html' },
   ],
   'Sandy Hook': [
+    { name: 'Camp Gateway Sandy Hook', priceRange: '$30', tag: 'Official Campground', platform: 'Recreation.gov', url: 'https://www.recreation.gov/camping/campgrounds/234715' },
     { name: 'Molly Pitcher Inn Red Bank', priceRange: '$95–$185', tag: 'Closest Hotel', platform: 'Official Site', url: 'https://www.mollypitcherinn.com/rooms/' },
     { name: 'Courtyard Middletown Hazlet', priceRange: '$79–$130', tag: 'Budget Choice', platform: 'Marriott', url: 'https://www.marriott.com/en-us/hotels/ewrch-courtyard-middletown-hazlet/overview/' },
     { name: 'Hampton Inn Tinton Falls', priceRange: '$85–$140', tag: 'Reliable Chain', platform: 'Hilton', url: 'https://www.hilton.com/en/hotels/ttnfphx-hampton-tinton-falls-eatontown/' },
