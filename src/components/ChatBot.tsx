@@ -186,7 +186,16 @@ const ChatBot: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
+        let serverMessage = `Server error: ${response.status}`;
+        try {
+          const err = await response.json();
+          if (err?.error && typeof err.error === 'string') {
+            serverMessage = err.error;
+          }
+        } catch {
+          // Keep fallback status message if error payload is not JSON.
+        }
+        throw new Error(serverMessage);
       }
 
       const data = await response.json();
@@ -197,12 +206,21 @@ const ChatBot: React.FC = () => {
         sources: data.sources,
         quickReplies: data.quickReplies,
       }]);
-    } catch {
+    } catch (error) {
+      const errorText = error instanceof Error ? error.message : 'Unknown error';
+      const isLocal =
+        typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+      const fallbackMessage = isLocal
+        ? "Sorry, I couldn't connect to the server. Make sure the API is running (`npm run dev:all`)."
+        : "Sorry, I couldn't connect to the chatbot API. If this is a deployed site, verify the Vercel `OPENAI_API_KEY` env var and redeploy.";
+
       setMessages(prev => [
         ...prev,
         {
           role: 'assistant',
-          content: "Sorry, I couldn't connect to the server. Make sure the API is running (`npm run dev:all`).",
+          content: `Sorry, I ran into an error: ${errorText}\n\n${fallbackMessage}`,
         },
       ]);
     } finally {
