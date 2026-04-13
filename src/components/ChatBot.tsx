@@ -12,12 +12,20 @@ interface BookingCard {
   platform: string;
   bookingUrl: string;
   backupUrl?: string;
+  mapUrl?: string;
+}
+
+interface MapCard {
+  destination: string;
+  coordinates: string;
+  mapUrl: string;
 }
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   bookingCards?: BookingCard[];
+  mapCards?: MapCard[];
   sources?: Array<{ label: string; url: string }>;
   quickReplies?: string[];
 }
@@ -84,6 +92,63 @@ const BookingCardItem: React.FC<{
     >
       {isSaved ? '★ Saved' : '☆ Save'}
     </button>
+  </div>
+);
+
+const HotelPriceHistogram: React.FC<{ cards: BookingCard[] }> = ({ cards }) => {
+  const points = cards
+    .map((card) => ({
+      name: card.name,
+      midpoint: parsePriceRangeMidpoint(card.priceRange),
+    }))
+    .sort((a, b) => a.midpoint - b.midpoint);
+
+  const maxPrice = Math.max(...points.map((p) => p.midpoint), 1);
+
+  return (
+    <div className="chat-cost-chart chat-hotel-histogram">
+      <p className="chat-booking-header">Hotel Price Histogram (Nightly Midpoint)</p>
+      <div className="chat-histogram-vertical">
+        {points.map((point) => {
+          const height = Math.max((point.midpoint / maxPrice) * 100, 10);
+          return (
+            <div key={point.name} className="chat-histogram-bin">
+              <div className="chat-histogram-value">${point.midpoint}</div>
+              <div className="chat-histogram-bar-track">
+                <div className="chat-histogram-bar-fill" style={{ height: `${height}%` }} />
+              </div>
+              <div className="chat-histogram-label" title={point.name}>{point.name}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const HotelMapGrid: React.FC<{ cards: BookingCard[] }> = ({ cards }) => (
+  <div className="chat-map-cards chat-hotel-maps">
+    <p className="chat-booking-header">Hotel Locations</p>
+    <div className="chat-hotel-map-grid">
+      {cards.map((card) => {
+        const query = encodeURIComponent(`${card.name} ${card.location} New Jersey`);
+        const embedUrl = `https://www.google.com/maps?q=${query}&output=embed`;
+        const mapUrl = card.mapUrl || `https://www.google.com/maps/search/?api=1&query=${query}`;
+        return (
+          <div key={`${card.name}-${card.location}`} className="chat-hotel-map-card">
+            <iframe
+              title={`Map of ${card.name}`}
+              src={embedUrl}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+            <a href={mapUrl} target="_blank" rel="noopener noreferrer">
+              Open {card.name} in Maps
+            </a>
+          </div>
+        );
+      })}
+    </div>
   </div>
 );
 
@@ -203,6 +268,7 @@ const ChatBot: React.FC = () => {
         role: 'assistant',
         content: data.reply,
         bookingCards: data.bookingCards,
+        mapCards: data.mapCards,
         sources: data.sources,
         quickReplies: data.quickReplies,
       }]);
@@ -416,6 +482,27 @@ const ChatBot: React.FC = () => {
                           onToggleSave={toggleBookmark}
                         />
                       ))}
+                      <HotelPriceHistogram cards={msg.bookingCards} />
+                      <HotelMapGrid cards={msg.bookingCards} />
+                    </div>
+                  )}
+                  {msg.role === 'assistant' && msg.mapCards && msg.mapCards.length > 0 && (
+                    <div className="chat-map-cards">
+                      <p className="chat-booking-header">Map Quick Links</p>
+                      <div className="chat-map-grid">
+                        {msg.mapCards.map((mapCard) => (
+                          <a
+                            key={mapCard.destination}
+                            href={mapCard.mapUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="chat-map-card"
+                          >
+                            <strong>{mapCard.destination}</strong>
+                            <span>{mapCard.coordinates}</span>
+                          </a>
+                        ))}
+                      </div>
                     </div>
                   )}
                   {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && (

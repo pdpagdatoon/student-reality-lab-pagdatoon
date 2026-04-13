@@ -81,11 +81,27 @@ const DESTINATION_CARD_PHOTOS = {
   'Delaware Water Gap':   'images/destinations/delaware-water-gap.jpg',
 };
 
+const DESTINATION_MAP_META = {
+  'Atlantic City': { lat: 39.3643, lng: -74.4229 },
+  'Cape May': { lat: 38.9351, lng: -74.9060 },
+  'Wildwood': { lat: 38.9918, lng: -74.8149 },
+  'Seaside Heights': { lat: 39.9448, lng: -74.0729 },
+  'Asbury Park': { lat: 40.2204, lng: -74.0121 },
+  'Long Beach Island': { lat: 39.6482, lng: -74.1733 },
+  'Ocean City NJ': { lat: 39.2776, lng: -74.5746 },
+  'Sandy Hook': { lat: 40.4665, lng: -74.0002 },
+  'Princeton': { lat: 40.3573, lng: -74.6672 },
+  'Delaware Water Gap': { lat: 40.9793, lng: -75.1429 },
+};
+
+const MAP_KEYWORDS = /(map|where|location|directions|near|distance|route)/i;
+
 function buildBookingCards(destinationName) {
   const hotels = DESTINATION_HOTELS[destinationName];
   if (!hotels) return [];
   const photo = DESTINATION_CARD_PHOTOS[destinationName] || 'images/destinations/default.jpg';
   return hotels.map(h => ({
+    query: encodeURIComponent(`${h.name} ${destinationName} New Jersey`),
     name: h.name,
     location: destinationName,
     priceRange: h.priceRange + '/night',
@@ -93,8 +109,35 @@ function buildBookingCards(destinationName) {
     imageUrl: photo,
     platform: h.platform,
     bookingUrl: h.url,
+    mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${h.name} ${destinationName} New Jersey`)}`,
     backupUrl: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(`${h.name} ${destinationName} New Jersey`)}`,
-  }));
+  })).map(({ query, ...rest }) => rest);
+}
+
+function extractDestinationMentions(messages) {
+  const text = messages
+    .map(m => String(m?.content || ''))
+    .join(' ')
+    .toLowerCase();
+
+  return destinationsData
+    .map(d => d.destination)
+    .filter(name => text.includes(name.toLowerCase()));
+}
+
+function buildMapCards(destinations) {
+  return destinations
+    .filter((name, index, arr) => arr.indexOf(name) === index)
+    .map(name => {
+      const meta = DESTINATION_MAP_META[name];
+      if (!meta) return null;
+      return {
+        destination: name,
+        coordinates: `${meta.lat.toFixed(4)}, ${meta.lng.toFixed(4)}`,
+        mapUrl: `https://www.google.com/maps?q=${meta.lat},${meta.lng}`,
+      };
+    })
+    .filter(Boolean);
 }
 
 const app = express();
@@ -396,6 +439,9 @@ Guidelines:
 
   const conversationMessages = [systemPrompt, ...messages];
   const hotelSearches = []; // track destinations where hotel tool was called
+  const mentionedDestinations = extractDestinationMentions(messages);
+  const latestUserText = [...messages].reverse().find(m => m.role === 'user')?.content || '';
+  const wantsMapCards = MAP_KEYWORDS.test(latestUserText);
 
   try {
     // Agentic loop: run until no more tool calls
@@ -435,6 +481,10 @@ Guidelines:
 
     const finalMessage = response.choices[0].message.content;
     const bookingCards = hotelSearches.flatMap(dest => buildBookingCards(dest));
+    const mapCandidates = [...hotelSearches, ...mentionedDestinations].slice(0, 6);
+    const mapCards = (wantsMapCards || mapCandidates.length > 0)
+      ? buildMapCards(mapCandidates).slice(0, 4)
+      : [];
     const quickReplies = hotelSearches.length > 0
       ? [
           'Compare those options by total 3-day budget',
@@ -445,6 +495,7 @@ Guidelines:
           'Find me the best nightlife destination',
           'Which destination is cheapest for 3 days?',
           'Recommend hotels under $120/night',
+          'Show map links for Cape May and Wildwood',
         ];
 
     res.json({
@@ -452,6 +503,7 @@ Guidelines:
       sources: defaultSources,
       quickReplies,
       ...(bookingCards.length > 0 && { bookingCards }),
+      ...(mapCards.length > 0 && { mapCards }),
     });
   } catch (err) {
     console.error('OpenAI error:', err.message);
