@@ -168,7 +168,7 @@ function buildStaticBookingCards(destinationName) {
     .filter(h => h.status !== 'closed' && h.status !== 'permanently_closed')
     .filter(h => !isDeniedHotel(destinationName, h.name))
     .filter(h => {
-      const locationHint = `${h.city || ''} ${h.name || ''} ${h.url || ''}`.toLowerCase();
+      const locationHint = `${h.city || destinationName} ${h.name || ''} ${h.url || ''}`.toLowerCase();
       return allowedTerms.some(term => locationHint.includes(term));
     })
     .map(h => ({
