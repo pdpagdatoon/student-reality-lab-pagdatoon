@@ -26,8 +26,8 @@ const DESTINATION_HOTELS = {
   ],
   'Seaside Heights': [
     { name: 'The Windjammer Motor Inn', priceRange: '$70–$115', tag: 'Beachfront', platform: 'Booking.com', url: 'https://www.booking.com/hotel/us/windjammer-motor-inn.html' },
-    { name: 'Comfort Inn Toms River', priceRange: '$65–$95', tag: 'Budget Pick', platform: 'Choice Hotels', url: 'https://www.choicehotels.com/new-jersey/toms-river/comfort-inn-hotels/nj054' },
-    { name: 'The Breakers Ocean Resort', priceRange: '$80–$130', tag: 'Oceanfront', platform: 'Expedia', url: 'https://www.expedia.com/Seaside-Heights-Hotels-The-Breakers-Ocean-Resort.h3226528.Hotel-Information' },
+    { name: 'Hershey Motel', priceRange: '$75–$130', tag: 'Boardwalk Area', platform: 'Official Site', url: 'https://www.hersheymotel.com/' },
+    { name: 'Aire Hotel North Beach', priceRange: '$85–$145', tag: 'Oceanfront', platform: 'Official Site', url: 'https://www.airehotelnorthbeach.com/' },
   ],
   'Asbury Park': [
     { name: 'The Asbury Hotel', priceRange: '$119–$249', tag: 'Boutique', platform: 'Official Site', url: 'https://theasburyhotel.com/rooms/' },
@@ -62,6 +62,10 @@ const DESTINATION_HOTELS = {
   ],
 };
 
+const LIVE_HOTEL_CACHE = new Map();
+const LIVE_HOTEL_CACHE_TTL_MS = 1000 * 60 * 30;
+const LIVE_SEARCH_RADIUS_METERS = 12000;
+
 const DESTINATION_CARD_PHOTOS = {
   'Atlantic City':        'images/destinations/atlantic-city.jpg',
   'Cape May':             'images/destinations/cape-may.jpg',
@@ -90,6 +94,27 @@ const DESTINATION_MAP_META = {
 
 const MAP_KEYWORDS = /(map|where|location|directions|near|distance|route)/i;
 
+const DESTINATION_ALLOWED_CITY_TERMS = {
+  'Atlantic City': ['atlantic city'],
+  'Cape May': ['cape may'],
+  'Wildwood': ['wildwood'],
+  'Seaside Heights': ['seaside heights', 'seaside park'],
+  'Asbury Park': ['asbury park', 'ocean grove', 'neptune'],
+  'Long Beach Island': ['beach haven', 'ship bottom', 'surf city', 'harvey cedars', 'long beach island'],
+  'Ocean City NJ': ['ocean city'],
+  'Sandy Hook': ['sandy hook', 'highlands', 'red bank', 'hazlet', 'tinton falls'],
+  'Princeton': ['princeton'],
+  'Delaware Water Gap': ['delaware water gap', 'east stroudsburg', 'shawnee on delaware'],
+};
+
+const DESTINATION_HOTEL_DENYLIST = {
+  'Seaside Heights': [
+    'the breakers ocean resort',
+    'the breakers on the ocean',
+    'comfort inn toms river',
+  ],
+};
+
 const requestBuckets = new Map();
 const RATE_WINDOW_MS = 60_000;
 const RATE_LIMIT = 40;
@@ -98,6 +123,7 @@ const defaultSources = [
   { label: 'Dataset methodology', url: 'https://github.com/pdpagdatoon/student-reality-lab-pagdatoon/blob/main/data/notes.md' },
   { label: 'Booking baseline', url: 'https://www.booking.com/' },
   { label: 'Expedia baseline', url: 'https://www.expedia.com/' },
+  { label: 'OpenStreetMap live hotels', url: 'https://www.openstreetmap.org/' },
   { label: 'NJ Transit fares', url: 'https://www.njtransit.com/' },
 ];
 
@@ -173,11 +199,59 @@ const tools = [
   },
 ];
 
-function buildBookingCards(destinationName) {
+function toRadians(value) {
+  return (value * Math.PI) / 180;
+}
+
+function distanceMeters(aLat, aLng, bLat, bLng) {
+  const earthRadius = 6371000;
+  const dLat = toRadians(bLat - aLat);
+  const dLng = toRadians(bLng - aLng);
+  const lat1 = toRadians(aLat);
+  const lat2 = toRadians(bLat);
+  const h =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  return 2 * earthRadius * Math.asin(Math.sqrt(h));
+}
+
+function getEstimatedPriceRange(destinationName) {
+  const destination = destinationsData.find(d => d.destination === destinationName);
+  const nightly = destination?.lodging_per_night || 120;
+  const low = Math.max(35, Math.round(nightly * 0.7));
+  const high = Math.max(low + 20, Math.round(nightly * 1.25));
+  return `$${low}-$${high}`;
+}
+
+function isLikelyClosed(tags = {}) {
+  const closedFlags = ['disused', 'abandoned', 'demolished', 'construction', 'closed'];
+  const text = Object.entries(tags)
+    .map(([k, v]) => `${k}:${String(v || '')}`.toLowerCase())
+    .join(' ');
+
+  return closedFlags.some(flag => text.includes(flag));
+}
+
+function isDeniedHotel(destinationName, hotelName) {
+  const denied = DESTINATION_HOTEL_DENYLIST[destinationName] || [];
+  const normalizedName = String(hotelName || '').toLowerCase();
+  return denied.some(entry => normalizedName.includes(entry));
+}
+
+function buildStaticBookingCards(destinationName) {
   const hotels = DESTINATION_HOTELS[destinationName];
   if (!hotels) return [];
   const photo = DESTINATION_CARD_PHOTOS[destinationName] || 'images/destinations/default.jpg';
-  return hotels.map(h => ({
+  const allowedTerms = DESTINATION_ALLOWED_CITY_TERMS[destinationName] || [destinationName.toLowerCase()];
+
+  return hotels
+    .filter(h => h.status !== 'closed' && h.status !== 'permanently_closed')
+    .filter(h => !isDeniedHotel(destinationName, h.name))
+    .filter(h => {
+      const locationHint = `${h.city || ''} ${h.name || ''} ${h.url || ''}`.toLowerCase();
+      return allowedTerms.some(term => locationHint.includes(term));
+    })
+    .map(h => ({
     query: encodeURIComponent(`${h.name} ${destinationName} New Jersey`),
     name: h.name,
     location: destinationName,
@@ -188,7 +262,104 @@ function buildBookingCards(destinationName) {
     bookingUrl: h.url,
     mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${h.name} ${destinationName} New Jersey`)}`,
     backupUrl: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(`${h.name} ${destinationName} New Jersey`)}`,
-  })).map(({ query, ...rest }) => rest);
+  }))
+    .map(({ query, ...rest }) => rest);
+}
+
+async function fetchLiveHotels(destinationName) {
+  const destinationMeta = DESTINATION_MAP_META[destinationName];
+  if (!destinationMeta) return [];
+
+  const cacheKey = destinationName;
+  const cached = LIVE_HOTEL_CACHE.get(cacheKey);
+  if (cached && Date.now() - cached.savedAt < LIVE_HOTEL_CACHE_TTL_MS) {
+    return cached.hotels;
+  }
+
+  const overpassQuery = `[out:json][timeout:20];(node["tourism"~"hotel|motel|guest_house|hostel"](around:${LIVE_SEARCH_RADIUS_METERS},${destinationMeta.lat},${destinationMeta.lng});way["tourism"~"hotel|motel|guest_house|hostel"](around:${LIVE_SEARCH_RADIUS_METERS},${destinationMeta.lat},${destinationMeta.lng});relation["tourism"~"hotel|motel|guest_house|hostel"](around:${LIVE_SEARCH_RADIUS_METERS},${destinationMeta.lat},${destinationMeta.lng}););out center tags 80;`;
+
+  const response = await fetch('https://overpass-api.de/api/interpreter', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `data=${encodeURIComponent(overpassQuery)}`,
+  });
+
+  if (!response.ok) return [];
+
+  const payload = await response.json();
+  const elements = Array.isArray(payload?.elements) ? payload.elements : [];
+  const allowedTerms = DESTINATION_ALLOWED_CITY_TERMS[destinationName] || [destinationName.toLowerCase()];
+  const photo = DESTINATION_CARD_PHOTOS[destinationName] || 'images/destinations/default.jpg';
+  const estimatedPrice = getEstimatedPriceRange(destinationName);
+
+  const hotels = elements
+    .map((el) => {
+      const tags = el.tags || {};
+      const lat = typeof el.lat === 'number' ? el.lat : el.center?.lat;
+      const lng = typeof el.lon === 'number' ? el.lon : el.center?.lon;
+      if (!tags.name || typeof lat !== 'number' || typeof lng !== 'number') return null;
+      if (isLikelyClosed(tags)) return null;
+      if (isDeniedHotel(destinationName, tags.name)) return null;
+
+      const city = String(tags['addr:city'] || tags['addr:town'] || tags['addr:village'] || '').toLowerCase();
+      const locationHint = `${city} ${tags.name} ${tags.website || tags.url || ''}`.toLowerCase();
+      const withinTerms = allowedTerms.some(term => locationHint.includes(term));
+      const metersAway = distanceMeters(destinationMeta.lat, destinationMeta.lng, lat, lng);
+
+      const requireCityMatch = ['Seaside Heights', 'Ocean City NJ', 'Cape May', 'Wildwood', 'Atlantic City', 'Princeton']
+        .includes(destinationName);
+
+      if (requireCityMatch && !withinTerms) return null;
+      if (!requireCityMatch && !withinTerms && metersAway > 9000) return null;
+
+      const siteUrl = tags.website || tags.url || `https://www.openstreetmap.org/${el.type}/${el.id}`;
+      return {
+        name: tags.name,
+        location: destinationName,
+        priceRange: `${estimatedPrice}/night`,
+        tag: 'Live Nearby',
+        imageUrl: photo,
+        platform: 'OpenStreetMap',
+        bookingUrl: siteUrl,
+        mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${tags.name} ${destinationName} New Jersey`)}`,
+        backupUrl: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(`${tags.name} ${destinationName} New Jersey`)}`,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .slice(0, 4);
+
+  LIVE_HOTEL_CACHE.set(cacheKey, { savedAt: Date.now(), hotels });
+  return hotels;
+}
+
+async function buildBookingCards(destinationName) {
+  try {
+    const live = await fetchLiveHotels(destinationName);
+    if (live.length > 0) return live;
+  } catch {
+    // Fall back to curated list when live lookup fails.
+  }
+  return buildStaticBookingCards(destinationName);
+}
+
+function isStreamRequest(req) {
+  if (req.query && req.query.stream === '1') return true;
+  try {
+    const url = new URL(req.url || '', 'http://localhost');
+    return url.searchParams.get('stream') === '1';
+  } catch {
+    return false;
+  }
+}
+
+function sseWrite(res, event, data) {
+  res.write(`event: ${event}\n`);
+  res.write(`data: ${JSON.stringify(data)}\n\n`);
+}
+
+function toTextChunks(text) {
+  return String(text || '').split(/(\s+)/).filter(Boolean);
 }
 
 function extractDestinationMentions(messages) {
@@ -378,22 +549,21 @@ export default async function handler(req, res) {
   if (!Array.isArray(messages)) {
     return res.status(400).json({ error: 'messages must be an array' });
   }
-  if (messages.length > 20) {
-    return res.status(400).json({ error: 'messages exceeds max length (20)' });
-  }
+  const boundedMessages = messages.slice(-20);
 
-  const malformed = messages.some(
+  const malformed = boundedMessages.some(
     m => !m || (m.role !== 'user' && m.role !== 'assistant') || typeof m.content !== 'string' || m.content.length > 1200
   );
   if (malformed) {
     return res.status(400).json({ error: 'messages contains invalid items' });
   }
 
-  const conversationMessages = [systemPrompt, ...messages];
+  const conversationMessages = [systemPrompt, ...boundedMessages];
   const hotelSearches = [];
-  const mentionedDestinations = extractDestinationMentions(messages);
-  const latestUserText = [...messages].reverse().find(m => m.role === 'user')?.content || '';
+  const mentionedDestinations = extractDestinationMentions(boundedMessages);
+  const latestUserText = [...boundedMessages].reverse().find(m => m.role === 'user')?.content || '';
   const wantsMapCards = MAP_KEYWORDS.test(latestUserText);
+  const streamMode = isStreamRequest(req);
 
   try {
     let response = await openai.chat.completions.create({
@@ -429,7 +599,9 @@ export default async function handler(req, res) {
     }
 
     const finalMessage = response.choices[0].message.content;
-    const bookingCards = hotelSearches.flatMap(dest => buildBookingCards(dest));
+    const uniqueHotelDests = [...new Set(hotelSearches)];
+    const bookingLists = await Promise.all(uniqueHotelDests.map(dest => buildBookingCards(dest)));
+    const bookingCards = bookingLists.flat();
     const mapCandidates = [...hotelSearches, ...mentionedDestinations].slice(0, 6);
     const mapCards = (wantsMapCards || mapCandidates.length > 0)
       ? buildMapCards(mapCandidates).slice(0, 4)
@@ -447,15 +619,45 @@ export default async function handler(req, res) {
           'Show map links for Cape May and Wildwood',
         ];
 
-    return res.status(200).json({
+    const payload = {
       reply: finalMessage,
       sources: defaultSources,
       quickReplies,
       ...(bookingCards.length > 0 && { bookingCards }),
       ...(mapCards.length > 0 && { mapCards }),
+    };
+
+    if (!streamMode) {
+      return res.status(200).json(payload);
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders?.();
+
+    for (const chunk of toTextChunks(payload.reply)) {
+      sseWrite(res, 'token', { token: chunk });
+    }
+
+    sseWrite(res, 'meta', {
+      ...(payload.bookingCards ? { bookingCards: payload.bookingCards } : {}),
+      ...(payload.mapCards ? { mapCards: payload.mapCards } : {}),
+      sources: payload.sources,
+      quickReplies: payload.quickReplies,
     });
+    sseWrite(res, 'done', { ok: true });
+    res.end();
+    return;
   } catch (err) {
     console.error('OpenAI error:', err.message);
+    if (streamMode) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      sseWrite(res, 'error', { error: 'Failed to get a response from the assistant.' });
+      sseWrite(res, 'done', { ok: false });
+      res.end();
+      return;
+    }
     return res.status(500).json({ error: 'Failed to get a response from the assistant.' });
   }
 }

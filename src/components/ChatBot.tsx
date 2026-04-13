@@ -152,6 +152,29 @@ const HotelMapGrid: React.FC<{ cards: BookingCard[] }> = ({ cards }) => (
   </div>
 );
 
+const CollapsibleSection: React.FC<{
+  title: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}> = ({ title, defaultOpen = false, children }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className="chat-collapsible">
+      <button
+        type="button"
+        className="chat-collapsible-toggle"
+        onClick={() => setIsOpen(o => !o)}
+        aria-expanded={isOpen}
+      >
+        <span>{title}</span>
+        <span className={`chat-collapsible-caret${isOpen ? ' is-open' : ''}`}>▾</span>
+      </button>
+      {isOpen && <div className="chat-collapsible-content">{children}</div>}
+    </div>
+  );
+};
+
 const SUGGESTED_PROMPTS = [
   'I have a $400 budget for 3 days — what can I afford?',
   'Where can I find the best nightlife?',
@@ -235,18 +258,19 @@ const ChatBot: React.FC = () => {
 
     const userMessage: Message = { role: 'user', content: userText };
     const updatedMessages = [...messages, userMessage];
+    const boundedMessages = updatedMessages.slice(-20);
     trackEvent('chat_message_sent', { length: userText.length });
-    setMessages(updatedMessages);
+    setMessages([...updatedMessages, { role: 'assistant', content: '' }]);
     setInputValue('');
     resetTextarea();
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/api/chat?stream=1', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
+          messages: boundedMessages.map(m => ({ role: m.role, content: m.content })),
         }),
       });
 
@@ -263,15 +287,98 @@ const ChatBot: React.FC = () => {
         throw new Error(serverMessage);
       }
 
-      const data = await response.json();
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: data.reply,
-        bookingCards: data.bookingCards,
-        mapCards: data.mapCards,
-        sources: data.sources,
-        quickReplies: data.quickReplies,
-      }]);
+      const updateAssistant = (content: string, meta: Partial<Message> = {}) => {
+        setMessages(prev => {
+          const next = [...prev];
+          const lastIndex = next.length - 1;
+          if (lastIndex < 0 || next[lastIndex].role !== 'assistant') return prev;
+          next[lastIndex] = {
+            ...next[lastIndex],
+            content,
+            ...(meta.bookingCards ? { bookingCards: meta.bookingCards } : {}),
+            ...(meta.mapCards ? { mapCards: meta.mapCards } : {}),
+            ...(meta.sources ? { sources: meta.sources } : {}),
+            ...(meta.quickReplies ? { quickReplies: meta.quickReplies } : {}),
+          };
+          return next;
+        });
+      };
+
+      const contentType = response.headers.get('content-type') || '';
+      const isSse = contentType.toLowerCase().includes('text/event-stream');
+
+      if (!isSse || !response.body) {
+        const data = await response.json();
+        updateAssistant(data.reply || '', {
+          bookingCards: data.bookingCards,
+          mapCards: data.mapCards,
+          sources: data.sources,
+          quickReplies: data.quickReplies,
+        });
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let streamedText = '';
+      let meta: Partial<Message> = {};
+
+      const handleEventBlock = (block: string) => {
+        const lines = block.split('\n');
+        let eventName = 'message';
+        let dataText = '';
+
+        for (const line of lines) {
+          if (line.startsWith('event:')) eventName = line.slice(6).trim();
+          if (line.startsWith('data:')) dataText += line.slice(5).trim();
+        }
+
+        if (!dataText) return;
+
+        let payload: any = {};
+        try {
+          payload = JSON.parse(dataText);
+        } catch {
+          payload = {};
+        }
+
+        if (eventName === 'token') {
+          streamedText += String(payload.token || '');
+          updateAssistant(streamedText, meta);
+          return;
+        }
+
+        if (eventName === 'meta') {
+          meta = {
+            ...(payload.bookingCards ? { bookingCards: payload.bookingCards } : {}),
+            ...(payload.mapCards ? { mapCards: payload.mapCards } : {}),
+            ...(payload.sources ? { sources: payload.sources } : {}),
+            ...(payload.quickReplies ? { quickReplies: payload.quickReplies } : {}),
+          };
+          updateAssistant(streamedText, meta);
+          return;
+        }
+
+        if (eventName === 'error') {
+          throw new Error(String(payload.error || 'Streaming chat failed'));
+        }
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const blocks = buffer.split('\n\n');
+        buffer = blocks.pop() || '';
+
+        for (const block of blocks) {
+          if (block.trim().length > 0) handleEventBlock(block);
+        }
+      }
+
+      if (buffer.trim().length > 0) handleEventBlock(buffer);
     } catch (error) {
       const errorText = error instanceof Error ? error.message : 'Unknown error';
       const isLocal =
@@ -282,13 +389,21 @@ const ChatBot: React.FC = () => {
         ? "Sorry, I couldn't connect to the server. Make sure the API is running (`npm run dev:all`)."
         : "Sorry, I couldn't connect to the chatbot API. If this is a deployed site, verify the Vercel `OPENAI_API_KEY` env var and redeploy.";
 
-      setMessages(prev => [
-        ...prev,
-        {
+      setMessages(prev => {
+        const next = [...prev];
+        const lastIndex = next.length - 1;
+        if (lastIndex >= 0 && next[lastIndex].role === 'assistant') {
+          next[lastIndex] = {
+            role: 'assistant',
+            content: `Sorry, I ran into an error: ${errorText}\n\n${fallbackMessage}`,
+          };
+          return next;
+        }
+        return [...prev, {
           role: 'assistant',
           content: `Sorry, I ran into an error: ${errorText}\n\n${fallbackMessage}`,
-        },
-      ]);
+        }];
+      });
     } finally {
       setIsLoading(false);
     }
@@ -487,46 +602,51 @@ const ChatBot: React.FC = () => {
                     </div>
                   )}
                   {msg.role === 'assistant' && msg.mapCards && msg.mapCards.length > 0 && (
-                    <div className="chat-map-cards">
-                      <p className="chat-booking-header">Map Quick Links</p>
-                      <div className="chat-map-grid">
-                        {msg.mapCards.map((mapCard) => (
-                          <a
-                            key={mapCard.destination}
-                            href={mapCard.mapUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="chat-map-card"
-                          >
-                            <strong>{mapCard.destination}</strong>
-                            <span>{mapCard.coordinates}</span>
-                          </a>
-                        ))}
+                    <CollapsibleSection title="Map quick links">
+                      <div className="chat-map-cards">
+                        <div className="chat-map-grid">
+                          {msg.mapCards.map((mapCard) => (
+                            <a
+                              key={mapCard.destination}
+                              href={mapCard.mapUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="chat-map-card"
+                            >
+                              <strong>{mapCard.destination}</strong>
+                              <span>{mapCard.coordinates}</span>
+                            </a>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    </CollapsibleSection>
                   )}
                   {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && (
-                    <div className="chat-sources">
-                      {msg.sources.map((source, idx) => (
-                        <a key={idx} href={source.url} target="_blank" rel="noopener noreferrer">Source: {source.label}</a>
-                      ))}
-                    </div>
+                    <CollapsibleSection title="Sources">
+                      <div className="chat-sources">
+                        {msg.sources.map((source, idx) => (
+                          <a key={idx} href={source.url} target="_blank" rel="noopener noreferrer">Source: {source.label}</a>
+                        ))}
+                      </div>
+                    </CollapsibleSection>
                   )}
                   {msg.role === 'assistant' && msg.quickReplies && msg.quickReplies.length > 0 && (
-                    <div className="chatbot-suggestions chat-quick-replies">
-                      {msg.quickReplies.map((reply, idx) => (
-                        <button
-                          key={idx}
-                          className="chatbot-suggestion-chip"
-                          onClick={() => {
-                            trackEvent('quick_reply_clicked', { reply });
-                            sendMessage(reply);
-                          }}
-                        >
-                          {reply}
-                        </button>
-                      ))}
-                    </div>
+                    <CollapsibleSection title="Suggested follow-ups" defaultOpen={messages.length <= 2}>
+                      <div className="chatbot-suggestions chat-quick-replies">
+                        {msg.quickReplies.map((reply, idx) => (
+                          <button
+                            key={idx}
+                            className="chatbot-suggestion-chip"
+                            onClick={() => {
+                              trackEvent('quick_reply_clicked', { reply });
+                              sendMessage(reply);
+                            }}
+                          >
+                            {reply}
+                          </button>
+                        ))}
+                      </div>
+                    </CollapsibleSection>
                   )}
                 </div>
               </div>

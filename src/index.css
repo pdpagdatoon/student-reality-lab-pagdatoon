@@ -841,6 +841,43 @@ input:focus, select:focus {
   margin-top: 8px;
 }
 
+.chat-collapsible {
+  margin-top: 10px;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.chat-collapsible-toggle {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #0f172a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 8px 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.chat-collapsible-caret {
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.chat-collapsible-caret.is-open {
+  transform: rotate(180deg);
+}
+
+.chat-collapsible-content {
+  border-top: 1px solid #e2e8f0;
+  padding: 8px;
+}
+
 .chat-booking-card-img {
   width: 90px;
   height: 90px;
