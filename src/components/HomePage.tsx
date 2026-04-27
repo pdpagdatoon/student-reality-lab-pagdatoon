@@ -1,12 +1,17 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { getFallbackImageDataUrl } from '../lib/imageFallback';
 import { getDestinationBackupImage, getDestinationPrimaryImage } from '../lib/destinationImages';
+import { loadData } from '../lib/loadData';
+import { enrichDestinationRecords } from '../lib/transforms';
 
 interface HomePageProps {
   onEnter: () => void;
 }
 
-const DESTINATIONS_PREVIEW = [
+const BASE_CONTROLS = { budget: 500, tripLength: 3, lodgingMode: 1 };
+
+// Static metadata for preview cards (not costs)
+const DESTINATION_METADATA = [
   {
     name: 'Atlantic City',
     emoji: '🎰',
@@ -15,7 +20,6 @@ const DESTINATIONS_PREVIEW = [
     tagBg: '#ede9fe',
     desc: 'Casinos, boardwalk, and great seafood on the East Coast.',
     photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/A_sunset_view_of_the_beach_in_Atlantic_City%2C_NJ.jpg/800px-A_sunset_view_of_the_beach_in_Atlantic_City%2C_NJ.jpg',
-    cost: '$343',
   },
   {
     name: 'Cape May',
@@ -25,7 +29,6 @@ const DESTINATIONS_PREVIEW = [
     tagBg: '#fef3c7',
     desc: 'Victorian architecture & whale-watching at a National Landmark.',
     photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Cape_May_Beach_Ave_from_the_sea_3.JPG/800px-Cape_May_Beach_Ave_from_the_sea_3.JPG',
-    cost: '$507',
   },
   {
     name: 'Sandy Hook',
@@ -35,7 +38,6 @@ const DESTINATIONS_PREVIEW = [
     tagBg: '#ccfbf1',
     desc: 'Free national park beach & America\'s oldest lighthouse.',
     photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Sandy_Hook_Aerial_1_%2811022025%29.jpg/800px-Sandy_Hook_Aerial_1_%2811022025%29.jpg',
-    cost: '$91',
   },
   {
     name: 'Asbury Park',
@@ -45,7 +47,6 @@ const DESTINATIONS_PREVIEW = [
     tagBg: '#cffafe',
     desc: 'Indie music, Art Deco boardwalk, and a creative beach scene.',
     photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Paramount_Theatre_Asbury_Park_Convention_Hall_NJ2.jpg/800px-Paramount_Theatre_Asbury_Park_Convention_Hall_NJ2.jpg',
-    cost: '$323',
   },
 ];
 
@@ -68,6 +69,20 @@ const FEATURES = [
 ];
 
 const HomePage: React.FC<HomePageProps> = ({ onEnter }) => {
+  const rawData = loadData();
+  const enrichedData = useMemo(
+    () => enrichDestinationRecords(rawData, BASE_CONTROLS),
+    [rawData]
+  );
+
+  const destinationsPreview = useMemo(
+    () => DESTINATION_METADATA.map(meta => {
+      const enrichedDest = enrichedData.find(d => d.destination === meta.name);
+      const cost = enrichedDest ? `$${enrichedDest.total_trip_cost}` : 'N/A';
+      return { ...meta, cost };
+    }),
+    [enrichedData]
+  );
   return (
     <div className="homepage">
       {/* ── Hero ───────────────────────────────────────────── */}
@@ -154,7 +169,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter }) => {
           <h2 className="hp-section-title">A taste of what's waiting</h2>
           <p className="hp-section-sub">From $91 day-trips to $500+ getaways — there's a destination for every budget.</p>
           <div className="hp-dest-grid">
-            {DESTINATIONS_PREVIEW.map(d => (
+            {destinationsPreview.map(d => (
               <div className="hp-dest-card" key={d.name}>
                 <div className="hp-dest-img-wrap">
                   <img

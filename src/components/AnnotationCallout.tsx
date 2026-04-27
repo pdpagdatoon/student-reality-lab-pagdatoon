@@ -13,11 +13,13 @@ const AnnotationCallout: React.FC<AnnotationCalloutProps> = ({ cheapest, mostExp
   let message = '';
 
   if (affordableCount === 0) {
-    message = `All destinations exceed your budget of $${controls.budget}. Try increasing your budget, shortening the trip, or sharing lodging costs.`;
-  } else if (cheapest) {
-    message = `The most affordable destination under your current settings is ${cheapest.destination} at $${cheapest.total_trip_cost}.`;
+    message = `All 10 destinations exceed your $${controls.budget} budget. Try increasing your budget, shortening the trip, or sharing lodging costs with friends.`;
+  } else if (affordableCount === 1 && cheapest) {
+    message = `Only ${cheapest.destination} fits your budget at $${cheapest.total_trip_cost}. Split lodging or add a day to see more options.`;
+  } else if (cheapest && mostExpensive) {
+    message = `${affordableCount} of 10 destinations fit your $${controls.budget} budget — from ${cheapest.destination} ($${cheapest.total_trip_cost}) up to ${mostExpensive.destination} ($${mostExpensive.total_trip_cost}).`;
   } else {
-    message = `With your current settings, ${affordableCount} destinations are affordable. The most expensive affordable one is ${mostExpensive?.destination} at $${mostExpensive?.total_trip_cost}.`;
+    message = `${affordableCount} of 10 destinations are affordable under your current settings.`;
   }
 
   return (

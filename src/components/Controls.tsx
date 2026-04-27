@@ -4,9 +4,10 @@ import { UserControls } from '../lib/schema';
 interface ControlsProps {
   controls: UserControls;
   onChange: (changes: Partial<UserControls>) => void;
+  affordableCount?: number;
 }
 
-const Controls: React.FC<ControlsProps> = ({ controls, onChange }) => {
+const Controls: React.FC<ControlsProps> = ({ controls, onChange, affordableCount }) => {
   return (
     <div className="controls">
       <div className="control">
@@ -44,6 +45,11 @@ const Controls: React.FC<ControlsProps> = ({ controls, onChange }) => {
           <option value={4}>With 3 friends (4 total)</option>
         </select>
       </div>
+      {affordableCount !== undefined && (
+        <p className="controls-summary" aria-live="polite">
+          <strong>{affordableCount}</strong> of 10 destinations fit your current settings
+        </p>
+      )}
     </div>
   );
 };

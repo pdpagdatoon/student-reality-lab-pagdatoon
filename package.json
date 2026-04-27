@@ -14,6 +14,8 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "check:hotel-links": "node scripts/validateHotelLinks.mjs",
+    "validate:hotels": "node scripts/validateHotelLinksV2.mjs",
+    "smoke:charts": "node scripts/chart-smoke-test.mjs",
     "refresh:data-metadata": "node scripts/refreshDataMetadata.mjs"
   },
   "dependencies": {
@@ -38,7 +40,7 @@
     "eslint": "^8.55.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
-    "typescript": "^5.2.2",
+    "typescript": "5.2.2",
     "vite": "^5.0.8"
   }
 }

@@ -22,5 +22,6 @@ export interface UserControls {
   budget: number;
   tripLength: number;
   lodgingMode: number; // 1 = solo, 2 = split with 1 friend, 3 = split with 2 friends, 4 = split with 3 friends
-  selectedDestination?: string;
 }
+
+export type SelectedDestination = string | undefined;

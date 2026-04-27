@@ -1,11 +1,13 @@
-﻿import React, { Suspense, lazy, useState, useMemo } from 'react';
+﻿import React, { Suspense, lazy, useState, useMemo, useEffect, useCallback } from 'react';
 import { loadData } from './lib/loadData';
 import { enrichDestinationRecords } from './lib/transforms';
 import { UserControls } from './lib/schema';
 import ChatBot from './components/ChatBot';
 import HomePage from './components/HomePage';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { trackEvent } from './lib/analytics';
 import { DATA_METADATA } from './lib/metadata';
+import { encodeControlsToUrl, decodeControlsFromUrl } from './lib/urlState';
 import './index.css';
 
 const Controls = lazy(() => import('./components/Controls'));
@@ -17,14 +19,21 @@ const StoryText = lazy(() => import('./components/StoryText'));
 const AnnotationCallout = lazy(() => import('./components/AnnotationCallout'));
 
 const App: React.FC = () => {
-  const [page, setPage] = useState<'home' | 'dashboard'>('home');
+  // Decode URL params for initial state
+  const urlState = decodeControlsFromUrl();
+
+  const [page, setPage] = useState<'home' | 'dashboard'>(
+    Object.keys(urlState).length > 0 ? 'dashboard' : 'home'
+  );
   const [showMethodology, setShowMethodology] = useState(false);
-  const rawData = loadData();
+  const rawData = useMemo(() => loadData(), []);
   const [controls, setControls] = useState<UserControls>({
-    budget: 500,
-    tripLength: 3,
-    lodgingMode: 1,
+    budget: urlState.budget ?? 500,
+    tripLength: urlState.tripLength ?? 3,
+    lodgingMode: urlState.lodgingMode ?? 1,
   });
+  const [selectedDestination, setSelectedDestination] = useState<string | undefined>(urlState.destination);
+  const [copied, setCopied] = useState(false);
 
   const enrichedData = useMemo(() => enrichDestinationRecords(rawData, controls), [rawData, controls]);
 
@@ -53,11 +62,31 @@ const App: React.FC = () => {
     );
   }, [affordableDestinations]);
 
-  const handleControlsChange = (newControls: Partial<UserControls>) => {
+
+  const handleControlsChange = useCallback((newControls: Partial<UserControls>) => {
     trackEvent('controls_changed', newControls);
     setControls(prev => ({ ...prev, ...newControls }));
-  };
+  }, []);
 
+  // Keep URL in sync when on dashboard
+  useEffect(() => {
+    if (page !== 'dashboard') return;
+    const url = encodeControlsToUrl(controls, selectedDestination);
+    window.history.replaceState(null, '', url);
+  }, [controls, selectedDestination, page]);
+
+  const handleShare = async () => {
+    const url = encodeControlsToUrl(controls, selectedDestination);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      trackEvent('trip_shared', { destination: selectedDestination });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback: show the URL in a prompt
+      window.prompt('Copy this link:', url);
+    }
+  };
   return (
     <>
       {page === 'home' ? (
@@ -78,6 +107,14 @@ const App: React.FC = () => {
                 }}
               >
                 ← Home
+              </button>
+              <button
+                className="share-btn"
+                onClick={handleShare}
+                aria-label="Copy shareable link"
+                title="Copy shareable link"
+              >
+                {copied ? '✓ Copied!' : '🔗 Share'}
               </button>
               <div className="db-header-text">
                 <h1>Spring Break on a Student Budget</h1>
@@ -123,7 +160,7 @@ const App: React.FC = () => {
             </section>
 
             <Suspense fallback={<div className="chart">Loading dashboard modules...</div>}>
-              <Controls controls={controls} onChange={handleControlsChange} />
+              <Controls controls={controls} onChange={handleControlsChange} affordableCount={affordableDestinations.length} />
 
               <AnnotationCallout
                 cheapest={cheapestAffordable}
@@ -132,13 +169,28 @@ const App: React.FC = () => {
                 data={enrichedData}
               />
 
-              <DestinationCostChart data={enrichedData} onSelectDestination={(dest) => handleControlsChange({ selectedDestination: dest })} />
 
-              <CostBreakdown data={enrichedData} selectedDestination={controls.selectedDestination} onSelectDestination={(dest) => handleControlsChange({ selectedDestination: dest })} controls={controls} />
 
-              <DestinationInfo selectedDestination={controls.selectedDestination} data={enrichedData} />
 
-              <DistanceScatter data={enrichedData} />
+              <ErrorBoundary fallback={<div className="chart">Could not load cost chart.</div>}>
+                <DestinationCostChart
+                  data={enrichedData}
+                  selectedDestination={selectedDestination}
+                  onSelectDestination={(dest) => setSelectedDestination(dest)}
+                />
+              </ErrorBoundary>
+
+              <ErrorBoundary fallback={<div className="chart">Could not load breakdown chart.</div>}>
+                <CostBreakdown data={enrichedData} selectedDestination={selectedDestination} onSelectDestination={(dest) => setSelectedDestination(dest)} controls={controls} />
+              </ErrorBoundary>
+
+              <ErrorBoundary fallback={<div className="chart">Could not load destination details.</div>}>
+                <DestinationInfo selectedDestination={selectedDestination} data={enrichedData} />
+              </ErrorBoundary>
+
+              <ErrorBoundary fallback={<div className="chart">Could not load distance chart.</div>}>
+                <DistanceScatter data={enrichedData} selectedDestination={selectedDestination} />
+              </ErrorBoundary>
 
               <StoryText />
             </Suspense>

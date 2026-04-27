@@ -157,4 +157,6 @@ Notes:
 ## Maintenance Scripts
 
 - `npm run check:hotel-links` validates hotel listing links in `api/server.js`
+- `npm run validate:hotels` validates curated hotel links in `api/chat.js` and writes `data/hotel-link-audit.json`
+- `npm run smoke:charts` runs the shared chat chart helper smoke test
 - `npm run refresh:data-metadata` updates `displayedAsOf` in `src/lib/metadata.ts`

@@ -5,20 +5,28 @@ import { DestinationRecord } from '../lib/schema';
 interface DestinationCostChartProps {
   data: DestinationRecord[];
   onSelectDestination: (destination: string) => void;
+  selectedDestination?: string;
 }
 
-const DestinationCostChart: React.FC<DestinationCostChartProps> = ({ data, onSelectDestination }) => {
+const DestinationCostChart: React.FC<DestinationCostChartProps> = ({ data, onSelectDestination, selectedDestination }) => {
+  const affordableCount = data.filter((entry) => entry.affordability === 'affordable').length;
   return (
     <div className="chart">
       <h2>Destination Cost Comparison</h2>
-      <p style={{ color: '#64748b', marginTop: 0, marginBottom: 16, fontSize: 14 }}>
+      <p className="chart-copy">
         Total estimated trip cost for each destination under your current budget, trip length, and lodging settings.
         Teal bars are within budget; red bars exceed it. Click any bar to explore its cost breakdown.
       </p>
+      <div className="chart-legend" aria-label="Cost chart legend">
+        <span className="chart-legend-item"><span className="chart-swatch chart-swatch--ok" /> Within budget</span>
+        <span className="chart-legend-item"><span className="chart-swatch chart-swatch--over" /> Over budget</span>
+        <span className="chart-legend-item"><span className="chart-swatch chart-swatch--selected" /> Selected destination</span>
+        <span className="chart-legend-item chart-legend-item--meta">{affordableCount} affordable destination{affordableCount === 1 ? '' : 's'}</span>
+      </div>
       <ResponsiveContainer width="100%" height={460}>
         <BarChart
           data={data}
-          margin={{ top: 10, right: 20, left: 20, bottom: 80 }}
+          margin={{ top: 10, right: 20, left: 20, bottom: 96 }}
           onClick={(state) => {
             if (state && state.activePayload && state.activePayload[0]) {
               onSelectDestination(state.activePayload[0].payload.destination);
@@ -50,7 +58,13 @@ const DestinationCostChart: React.FC<DestinationCostChartProps> = ({ data, onSel
           />
           <Bar dataKey="total_trip_cost" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.affordability === 'affordable' ? '#14b8a6' : '#fb7185'} />
+              <Cell
+                key={`cell-${index}`}
+                fill={entry.affordability === 'affordable' ? '#14b8a6' : '#fb7185'}
+                stroke={entry.destination === selectedDestination ? '#0f172a' : 'transparent'}
+                strokeWidth={entry.destination === selectedDestination ? 2 : 0}
+                fillOpacity={entry.destination === selectedDestination ? 1 : 0.9}
+              />
             ))}
           </Bar>
         </BarChart>
@@ -59,4 +73,4 @@ const DestinationCostChart: React.FC<DestinationCostChartProps> = ({ data, onSel
   );
 };
 
-export default DestinationCostChart;
+export default React.memo(DestinationCostChart);

@@ -677,8 +677,11 @@ Guidelines:
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders?.();
 
-    for (const chunk of toTextChunks(payload.reply)) {
-      sseWrite(res, 'token', { token: chunk });
+    // Stream tokens with small delays to simulate real-time text generation
+    const chunks = toTextChunks(payload.reply);
+    for (let i = 0; i < chunks.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 30));
+      sseWrite(res, 'token', { token: chunks[i] });
     }
 
     sseWrite(res, 'meta', {

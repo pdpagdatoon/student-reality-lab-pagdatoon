@@ -206,8 +206,98 @@ input:focus, select:focus {
   transition: box-shadow 0.15s;
 }
 
+.chart-copy {
+  color: #64748b;
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 0.86rem;
+  color: #334155;
+}
+
+.chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-legend-item--meta {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.chart-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  display: inline-block;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+}
+
+.chart-swatch--ok {
+  background: #14b8a6;
+}
+
+.chart-swatch--over {
+  background: #fb7185;
+}
+
+.chart-swatch--selected {
+  background: #ffffff;
+  border: 2px solid #0f172a;
+}
+
+.chart-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(240,253,250,0.92), rgba(255,255,255,0.92));
+  border: 1px solid rgba(20,184,166,0.15);
+}
+
+.chart-summary strong {
+  color: #0f172a;
+}
+
+.chart-selection-row {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.chart-selection-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
 .chart:hover {
   box-shadow: 0 8px 28px rgba(15, 23, 42, 0.11);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .chart::before {
@@ -462,6 +552,21 @@ input:focus, select:focus {
   opacity: 1;
 }
 
+/* Star / saved-hotels toggle in chat header */
+.chatbot-star {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: #ffffff;
+  font-weight: 800;
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-right: 6px;
+}
+.chatbot-star:hover {
+  background: rgba(255,255,255,0.14);
+}
+
 .chatbot-messages {
   flex: 1;
   overflow-y: auto;
@@ -613,6 +718,23 @@ input:focus, select:focus {
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* Copy button inside assistant message */
+.chatbot-copy-btn {
+  border: 1px solid rgba(15,118,110,0.12);
+  background: transparent;
+  color: #0e7490;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.chatbot-copy-btn:hover {
+  background: rgba(14, 116, 144, 0.06);
+}
+
+.chatbot-message-actions { margin-top: 8px; display: flex; gap: 8px; }
 
 /* Markdown rendering inside assistant bubbles */
 .chatbot-bubble--md p { margin: 0 0 8px; }
@@ -800,6 +922,11 @@ input:focus, select:focus {
 .chat-bookmarks-item a:hover {
   text-decoration: underline;
 }
+
+/* Share button */
+.share-btn { background: transparent; border: 1.5px solid #bae6fd; border-radius: 8px; padding: 6px 14px; font-size: 13px; color: #0369a1; cursor: pointer; transition: all 0.15s; margin-left: 12px; }
+.share-btn:hover { background: #e0f2fe; }
+
 
 .chat-bookmarks-item button {
   border: 1px solid rgba(15, 118, 110, 0.28);
@@ -1222,6 +1349,16 @@ input:focus, select:focus {
 }
 
 @media (max-width: 420px) {
+  .chart {
+    padding: 22px 18px;
+  }
+
+  .chart-copy,
+  .chart-legend,
+  .chart-summary {
+    font-size: 0.9rem;
+  }
+
   .chatbot-window {
     right: 10px;
     left: 10px;
@@ -1229,6 +1366,22 @@ input:focus, select:focus {
     bottom: 85px;
   }
 
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .db-wave-1,
+  .db-wave-2 {
+    animation: none !important;
+  }
+}
   .chatbot-toggle {
     right: 14px;
     bottom: 20px;

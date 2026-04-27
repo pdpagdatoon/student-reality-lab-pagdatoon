@@ -23,29 +23,43 @@ const CostBreakdown: React.FC<CostBreakdownProps> = ({ data, selectedDestination
   return (
     <div className="chart">
       <h2>Cost Breakdown</h2>
-      <p style={{ color: '#64748b', marginTop: 0, marginBottom: 16, fontSize: 14 }}>
+      <p className="chart-copy">
         How the total cost splits between travel, lodging, food, and activities for the selected destination.
         Lodging is adjusted by your group size setting.
       </p>
       {!selected && (
-        <select onChange={(e) => onSelectDestination(e.target.value)} defaultValue="">
-          <option value="" disabled>Select a destination</option>
-          {data.map(d => <option key={d.destination} value={d.destination}>{d.destination}</option>)}
-        </select>
+        <div className="chart-selection-row">
+          <label htmlFor="cost-breakdown-select" className="chart-selection-label">Choose a destination</label>
+          <select id="cost-breakdown-select" onChange={(e) => onSelectDestination(e.target.value)} defaultValue="">
+            <option value="" disabled>Select a destination</option>
+            {data.map(d => <option key={d.destination} value={d.destination}>{d.destination}</option>)}
+          </select>
+        </div>
       )}
       {selected && (
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={breakdownData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis label={{ value: 'Cost ($)', angle: -90, position: 'insideLeft' }} />
-            <Tooltip formatter={(value) => [`$${value}`, 'Cost']} />
-            <Bar dataKey="cost" fill="#0ea5e9" />
-          </BarChart>
-        </ResponsiveContainer>
+        <>
+          <div className="chart-summary" aria-live="polite">
+            <strong>{selected.destination}</strong>
+            <span>Total: ${selected.total_trip_cost} · Affordability: {selected.affordability === 'affordable' ? 'Within budget' : 'Over budget'}</span>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={breakdownData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis label={{ value: 'Cost ($)', angle: -90, position: 'insideLeft' }} />
+              <Tooltip formatter={(value) => [`$${value}`, 'Cost']} />
+              <Bar dataKey="cost" fill="#0ea5e9" />
+            </BarChart>
+          </ResponsiveContainer>
+          {controls.tripLength === 1 && (
+            <p className="breakdown-note">
+              💡 1-day trips have no overnight lodging cost — just travel, food, and activities.
+            </p>
+          )}
+        </>
       )}
     </div>
   );
 };
 
-export default CostBreakdown;
+export default React.memo(CostBreakdown);

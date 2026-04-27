@@ -78,4 +78,4 @@ const DestinationInfo: React.FC<DestinationInfoProps> = ({ selectedDestination, 
   );
 };
 
-export default DestinationInfo;
+export default React.memo(DestinationInfo);

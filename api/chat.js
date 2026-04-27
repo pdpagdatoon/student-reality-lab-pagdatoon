@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { buildComparisonChartPayload, buildHotelComparisonChart } from './chartTools.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const destinationsData = JSON.parse(
@@ -11,56 +12,69 @@ const destinationsData = JSON.parse(
 const DESTINATION_HOTELS = {
   'Atlantic City': [
     { name: 'Resorts Casino Hotel', priceRange: '$89–$149', tag: 'Casino Resort', platform: 'Official Site', url: 'https://www.resortscasino.com/hotel/' },
-    { name: 'Hard Rock Hotel & Casino Atlantic City', priceRange: '$95–$175', tag: 'Entertainment', platform: 'Official Site', url: 'https://www.hardrockhotelatlanticcity.com/hotel-rooms/' },
-    { name: 'La Quinta Atlantic City', priceRange: '$65–$99', tag: 'Budget Pick', platform: 'Wyndham', url: 'https://www.wyndhamhotels.com/laquinta/atlantic-city-new-jersey/la-quinta-atlantic-city/overview' },
+    { name: 'Hard Rock Hotel & Casino Atlantic City', priceRange: '$95–$175', tag: 'Entertainment', platform: 'Official Site', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Hard Rock Hotel Atlantic City New Jersey')}` },
+    { name: 'La Quinta Atlantic City', priceRange: '$65–$99', tag: 'Budget Pick', platform: 'Wyndham', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('La Quinta Atlantic City New Jersey')}` },
   ],
   'Cape May': [
-    { name: 'Congress Hall Cape May', priceRange: '$129–$299', tag: 'Historic Hotel', platform: 'Official Site', url: 'https://www.congresshall.com/accommodations/' },
-    { name: 'Inn of Cape May', priceRange: '$95–$180', tag: 'Boutique Inn', platform: 'Official Site', url: 'https://www.theinnofcapemay.com/rooms/' },
-    { name: 'Holiday Inn Cape May', priceRange: '$79–$140', tag: 'Family-Friendly', platform: 'IHG', url: 'https://www.ihg.com/holidayinn/hotels/us/en/cape-may/cpymj/hoteldetail' },
+    { name: 'Congress Hall Cape May', priceRange: '$129–$299', tag: 'Historic Hotel', platform: 'Official Site', url: 'https://www.caperesorts.com/congress-hall' },
+    { name: 'Inn of Cape May', priceRange: '$95–$180', tag: 'Boutique Inn', platform: 'Official Site', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Inn of Cape May New Jersey')}` },
+    { name: 'Holiday Inn Cape May', priceRange: '$79–$140', tag: 'Family-Friendly', platform: 'IHG', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Holiday Inn Cape May New Jersey')}` },
   ],
   'Wildwood': [
-    { name: 'Starlux Hotel Wildwood', priceRange: '$85–$140', tag: 'Doo Wop Style', platform: 'Official Site', url: 'https://www.thestarlux.com/rooms/' },
+    { name: 'Starlux Hotel Wildwood', priceRange: '$85–$140', tag: 'Doo Wop Style', platform: 'Official Site', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Starlux Hotel Wildwood New Jersey')}` },
     { name: 'Condor Motel Wildwood', priceRange: '$55–$90', tag: 'Budget Pick', platform: 'Booking.com', url: 'https://www.booking.com/hotel/us/condor-motel.html' },
-    { name: 'Port Royal Hotel Wildwood', priceRange: '$75–$125', tag: 'Boardwalk Access', platform: 'Expedia', url: 'https://www.expedia.com/Wildwood-Hotels-Port-Royal-Hotel.h23280.Hotel-Information' },
+    { name: 'Port Royal Hotel Wildwood', priceRange: '$75–$125', tag: 'Boardwalk Access', platform: 'Expedia', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Port Royal Hotel Wildwood New Jersey')}` },
   ],
   'Seaside Heights': [
     { name: 'The Windjammer Motor Inn', priceRange: '$70–$115', tag: 'Beachfront', platform: 'Booking.com', url: 'https://www.booking.com/hotel/us/windjammer-motor-inn.html' },
-    { name: 'Hershey Motel', priceRange: '$75–$130', tag: 'Boardwalk Area', platform: 'Official Site', url: 'https://www.hersheymotel.com/' },
-    { name: 'Aire Hotel North Beach', priceRange: '$85–$145', tag: 'Oceanfront', platform: 'Official Site', url: 'https://www.airehotelnorthbeach.com/' },
+    { name: 'Hershey Motel', priceRange: '$75–$130', tag: 'Boardwalk Area', platform: 'Official Site', url: 'https://hersheymotel.com/' },
+    { name: 'Aire Hotel North Beach', priceRange: '$85–$145', tag: 'Oceanfront', platform: 'Official Site', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Aire Hotel North Beach New Jersey')}` },
   ],
   'Asbury Park': [
-    { name: 'The Asbury Hotel', priceRange: '$119–$249', tag: 'Boutique', platform: 'Official Site', url: 'https://theasburyhotel.com/rooms/' },
-    { name: 'The Berkeley Oceanfront Hotel', priceRange: '$95–$175', tag: 'Historic', platform: 'Official Site', url: 'https://www.theberkeley.com/rooms' },
+    { name: 'The Asbury Hotel', priceRange: '$119–$249', tag: 'Boutique', platform: 'Official Site', url: 'https://www.theasburyhotel.com/rooms-and-suites' },
+    { name: 'The Berkeley Oceanfront Hotel', priceRange: '$95–$175', tag: 'Historic', platform: 'Official Site', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('The Berkeley Oceanfront Hotel Asbury Park New Jersey')}` },
     { name: 'Empress Hotel Asbury Park', priceRange: '$85–$150', tag: 'Oceanfront', platform: 'Booking.com', url: 'https://www.booking.com/hotel/us/the-empress-hotel.html' },
   ],
   'Long Beach Island': [
-    { name: 'Engleside Inn Beach Haven', priceRange: '$110–$185', tag: 'Waterfront', platform: 'Official Site', url: 'https://www.engleside.com/rooms/' },
+    { name: 'Engleside Inn Beach Haven', priceRange: '$110–$185', tag: 'Waterfront', platform: 'Official Site', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Engleside Inn Beach Haven New Jersey')}` },
     { name: 'Sand Castle Motel LBI', priceRange: '$70–$120', tag: 'Budget Pick', platform: 'Booking.com', url: 'https://www.booking.com/hotel/us/sand-castle-motel.html' },
-    { name: 'Spray Beach Hotel LBI', priceRange: '$85–$145', tag: 'Beachfront', platform: 'Expedia', url: 'https://www.expedia.com/Long-Beach-Island-Hotels-Spray-Beach-Hotel.h87459.Hotel-Information' },
+    { name: 'Spray Beach Hotel LBI', priceRange: '$85–$145', tag: 'Beachfront', platform: 'Expedia', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Spray Beach Hotel Long Beach Island New Jersey')}` },
   ],
   'Ocean City NJ': [
-    { name: 'Flanders Hotel Ocean City', priceRange: '$90–$165', tag: 'Historic Hotel', platform: 'Official Site', url: 'https://www.theflandershotel.com/rooms/' },
+    { name: 'Flanders Hotel Ocean City', priceRange: '$90–$165', tag: 'Historic Hotel', platform: 'Official Site', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Flanders Hotel Ocean City New Jersey')}` },
     { name: 'Port-O-Call Hotel Ocean City', priceRange: '$80–$135', tag: 'Boardwalk Side', platform: 'Official Site', url: 'https://www.portocallhotel.com/rooms/' },
     { name: 'Impala Island Inn Ocean City', priceRange: '$65–$100', tag: 'Budget Pick', platform: 'Booking.com', url: 'https://www.booking.com/hotel/us/impala-island-inn.html' },
   ],
   'Sandy Hook': [
-    { name: 'Camp Gateway Sandy Hook', priceRange: '$30', tag: 'Official Campground', platform: 'Recreation.gov', url: 'https://www.recreation.gov/camping/campgrounds/234715' },
+    { name: 'Camp Gateway Sandy Hook', priceRange: '$30', tag: 'Official Campground', platform: 'Recreation.gov', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Camp Gateway Sandy Hook New Jersey')}` },
     { name: 'Molly Pitcher Inn Red Bank', priceRange: '$95–$185', tag: 'Closest Hotel', platform: 'Official Site', url: 'https://www.mollypitcherinn.com/rooms/' },
-    { name: 'Courtyard Middletown Hazlet', priceRange: '$79–$130', tag: 'Budget Choice', platform: 'Marriott', url: 'https://www.marriott.com/en-us/hotels/ewrch-courtyard-middletown-hazlet/overview/' },
-    { name: 'Hampton Inn Tinton Falls', priceRange: '$85–$140', tag: 'Reliable Chain', platform: 'Hilton', url: 'https://www.hilton.com/en/hotels/ttnfphx-hampton-tinton-falls-eatontown/' },
+    { name: 'Courtyard Middletown Hazlet', priceRange: '$79–$130', tag: 'Budget Choice', platform: 'Marriott', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Courtyard Middletown Hazlet New Jersey')}` },
+    { name: 'Hampton Inn Tinton Falls', priceRange: '$85–$140', tag: 'Reliable Chain', platform: 'Hilton', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Hampton Inn Tinton Falls New Jersey')}` },
   ],
   'Princeton': [
-    { name: 'Nassau Inn Princeton', priceRange: '$129–$220', tag: 'Historic Hotel', platform: 'Official Site', url: 'https://www.nassauinn.com/rooms/' },
-    { name: 'Hyatt Regency Princeton', priceRange: '$99–$189', tag: 'Full Service', platform: 'Hyatt', url: 'https://www.hyatt.com/en-US/hotel/new-jersey/hyatt-regency-princeton/prinr' },
+    { name: 'Nassau Inn Princeton', priceRange: '$129–$220', tag: 'Historic Hotel', platform: 'Official Site', url: 'https://nassauinn.com/rooms/' },
+    { name: 'Hyatt Regency Princeton', priceRange: '$99–$189', tag: 'Full Service', platform: 'Hyatt', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Hyatt Regency Princeton New Jersey')}` },
     { name: 'Residence Inn Princeton', priceRange: '$89–$155', tag: 'Extended Stay', platform: 'Marriott', url: 'https://www.marriott.com/en-us/hotels/ttnri-residence-inn-princeton-at-carnegie-center/overview/' },
   ],
   'Delaware Water Gap': [
-    { name: 'Shawnee Inn and Golf Resort', priceRange: '$89–$170', tag: 'Resort', platform: 'Official Site', url: 'https://www.shawneeinn.com/lodging/' },
-    { name: 'The Inn at Millrace Pond', priceRange: '$95–$165', tag: 'Historic Inn', platform: 'Official Site', url: 'https://www.innatmillracepond.com/rooms/' },
-    { name: 'Hampton Inn East Stroudsburg', priceRange: '$70–$120', tag: 'Budget Pick', platform: 'Hilton', url: 'https://www.hilton.com/en/hotels/abehahx-hampton-east-stroudsburg-stroudsburg/' },
+    { name: 'Shawnee Inn and Golf Resort', priceRange: '$89–$170', tag: 'Resort', platform: 'Official Site', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Shawnee Inn and Golf Resort New Jersey')}` },
+    { name: 'The Inn at Millrace Pond', priceRange: '$95–$165', tag: 'Historic Inn', platform: 'Official Site', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('The Inn at Millrace Pond New Jersey')}` },
+    { name: 'Hampton Inn East Stroudsburg', priceRange: '$70–$120', tag: 'Budget Pick', platform: 'Hilton', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent('Hampton Inn East Stroudsburg New Jersey')}` },
   ],
 };
+
+// Ensure every hotel entry has a backupUrl field to fall back to Booking search
+Object.entries(DESTINATION_HOTELS).forEach(([dest, hotels]) => {
+  (hotels || []).forEach(h => {
+    if (!h.backupUrl) {
+      try {
+        h.backupUrl = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent((h.name || '') + ' ' + dest + ' NJ')}`;
+      } catch (e) {
+        h.backupUrl = `https://www.booking.com/`;
+      }
+    }
+  });
+});
 
 const LIVE_HOTEL_CACHE = new Map();
 const LIVE_HOTEL_CACHE_TTL_MS = 1000 * 60 * 30;
@@ -122,7 +136,7 @@ const RATE_LIMIT = 40;
 const defaultSources = [
   { label: 'Dataset methodology', url: 'https://github.com/pdpagdatoon/student-reality-lab-pagdatoon/blob/main/data/notes.md' },
   { label: 'Booking baseline', url: 'https://www.booking.com/' },
-  { label: 'Expedia baseline', url: 'https://www.expedia.com/' },
+  { label: 'Booking (alternate)', url: 'https://www.booking.com/' },
   { label: 'OpenStreetMap live hotels', url: 'https://www.openstreetmap.org/' },
   { label: 'NJ Transit fares', url: 'https://www.njtransit.com/' },
 ];
@@ -196,6 +210,24 @@ const tools = [
         required: ['interest'],
       },
     },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'generate_comparison_chart',
+      description: 'Generates a small chart payload to compare numeric values for destinations or hotels (bar, pie, or budget_gauge).',
+      parameters: {
+        type: 'object',
+        properties: {
+          chart_type: { type: 'string', enum: ['bar', 'pie', 'budget_gauge'] },
+          title: { type: 'string' },
+          items: { type: 'array', items: { type: 'object', properties: { label: { type: 'string' }, value: { type: 'number' } }, required: ['label','value'] } },
+          unit: { type: 'string' },
+          budget: { type: 'number' }
+        },
+        required: ['chart_type','title','items']
+      }
+    }
   },
 ];
 
@@ -362,6 +394,27 @@ function toTextChunks(text) {
   return String(text || '').split(/(\s+)/).filter(Boolean);
 }
 
+function getAssistantErrorDetails(err) {
+  const status = Number(err?.status || err?.statusCode || 500);
+  const safeStatus = status >= 400 && status <= 599 ? status : 500;
+  const code = String(err?.code || err?.error?.code || '').toLowerCase();
+  const type = String(err?.type || err?.error?.type || '').toLowerCase();
+  const rawMessage = String(err?.message || 'Unknown OpenAI error');
+
+  let userMessage = 'Failed to get a response from the assistant.';
+
+  if (safeStatus === 401 || code.includes('invalid_api_key') || /api key/i.test(rawMessage)) {
+    userMessage = 'OpenAI authentication failed. Verify OPENAI_API_KEY in Vercel and redeploy.';
+  } else if (safeStatus === 429 || code.includes('insufficient_quota') || /quota/i.test(rawMessage)) {
+    userMessage = 'OpenAI quota or rate limit was reached. Check billing/usage limits for your API key.';
+  } else if ((safeStatus === 400 || safeStatus === 404) && /model/i.test(rawMessage)) {
+    userMessage = 'Configured OpenAI model is unavailable for this API key. Verify model access and name.';
+  }
+
+  const logMessage = `status=${safeStatus} code=${code || 'n/a'} type=${type || 'n/a'} message=${rawMessage}`;
+  return { statusCode: safeStatus, userMessage, logMessage };
+}
+
 function extractDestinationMentions(messages) {
   const text = messages
     .map(m => String(m?.content || ''))
@@ -482,6 +535,10 @@ function executeTool(name, args) {
       return { interest: args.interest, matches };
     }
 
+    case 'generate_comparison_chart': {
+      return buildComparisonChartPayload(args);
+    }
+
     default:
       return { error: `Unknown tool: ${name}` };
   }
@@ -564,6 +621,7 @@ export default async function handler(req, res) {
   const latestUserText = [...boundedMessages].reverse().find(m => m.role === 'user')?.content || '';
   const wantsMapCards = MAP_KEYWORDS.test(latestUserText);
   const streamMode = isStreamRequest(req);
+  let chartPayload = null;
 
   try {
     let response = await openai.chat.completions.create({
@@ -583,6 +641,9 @@ export default async function handler(req, res) {
           hotelSearches.push(args.destination_name);
         }
         const result = executeTool(toolCall.function.name, args);
+        if (toolCall.function.name === 'generate_comparison_chart' && result && typeof result === 'object' && result.type && result.data) {
+          chartPayload = result;
+        }
         conversationMessages.push({
           role: 'tool',
           tool_call_id: toolCall.id,
@@ -606,6 +667,9 @@ export default async function handler(req, res) {
     const mapCards = (wantsMapCards || mapCandidates.length > 0)
       ? buildMapCards(mapCandidates).slice(0, 4)
       : [];
+    if (!chartPayload && bookingCards.length > 0) {
+      chartPayload = buildHotelComparisonChart(bookingCards, { chart_type: 'bar' });
+    }
     const quickReplies = hotelSearches.length > 0
       ? [
           'Compare those options by total 3-day budget',
@@ -623,6 +687,7 @@ export default async function handler(req, res) {
       reply: finalMessage,
       sources: defaultSources,
       quickReplies,
+      ...(chartPayload && { inlineChart: chartPayload }),
       ...(bookingCards.length > 0 && { bookingCards }),
       ...(mapCards.length > 0 && { mapCards }),
     };
@@ -636,28 +701,42 @@ export default async function handler(req, res) {
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders?.();
 
-    for (const chunk of toTextChunks(payload.reply)) {
-      sseWrite(res, 'token', { token: chunk });
+    // Stream tokens with small delays to simulate real-time text generation
+    const chunks = toTextChunks(payload.reply);
+    for (let i = 0; i < chunks.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 30));
+      sseWrite(res, 'token', { token: chunks[i] });
     }
 
     sseWrite(res, 'meta', {
       ...(payload.bookingCards ? { bookingCards: payload.bookingCards } : {}),
       ...(payload.mapCards ? { mapCards: payload.mapCards } : {}),
+      ...(payload.inlineChart ? { inlineChart: payload.inlineChart } : {}),
       sources: payload.sources,
       quickReplies: payload.quickReplies,
     });
+    // Optionally emit a lightweight chart payload comparing hotel nightly midpoints
+    try {
+      if (payload.inlineChart) {
+        sseWrite(res, 'chart', payload.inlineChart);
+      }
+    } catch (e) {
+      // don't fail the whole stream if chart generation errors
+      console.warn('Chart generation failed', e?.message || e);
+    }
     sseWrite(res, 'done', { ok: true });
     res.end();
     return;
   } catch (err) {
-    console.error('OpenAI error:', err.message);
+    const errorDetails = getAssistantErrorDetails(err);
+    console.error('OpenAI error:', errorDetails.logMessage);
     if (streamMode) {
       res.setHeader('Content-Type', 'text/event-stream');
-      sseWrite(res, 'error', { error: 'Failed to get a response from the assistant.' });
+      sseWrite(res, 'error', { error: errorDetails.userMessage });
       sseWrite(res, 'done', { ok: false });
       res.end();
       return;
     }
-    return res.status(500).json({ error: 'Failed to get a response from the assistant.' });
+    return res.status(errorDetails.statusCode).json({ error: errorDetails.userMessage });
   }
 }

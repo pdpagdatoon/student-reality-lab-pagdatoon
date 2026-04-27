@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import InlineChatChart, { type InlineChartPayload } from './InlineChatChart';
 import { getFallbackImageDataUrl } from '../lib/imageFallback';
 import { trackEvent } from '../lib/analytics';
 
@@ -28,6 +29,17 @@ interface Message {
   mapCards?: MapCard[];
   sources?: Array<{ label: string; url: string }>;
   quickReplies?: string[];
+  inlineChart?: InlineChartPayload;
+}
+
+interface StreamEventPayload {
+  token?: string;
+  error?: string;
+  bookingCards?: BookingCard[];
+  mapCards?: MapCard[];
+  sources?: Array<{ label: string; url: string }>;
+  quickReplies?: string[];
+  inlineChart?: InlineChartPayload;
 }
 
 const BOOKMARK_STORAGE_KEY = 'springbreakbot.hotelBookmarks';
@@ -53,6 +65,7 @@ const BookingCardItem: React.FC<{
       onClick={() => {
         trackEvent('hotel_link_clicked', { hotel: card.name, platform: card.platform, location: card.location });
       }}
+      aria-label={`${card.name}, ${card.location}, opens booking details in a new tab`}
     >
       <div className="chat-booking-card-img">
         <img
@@ -72,18 +85,18 @@ const BookingCardItem: React.FC<{
           <strong className="chat-booking-card-price">{card.priceRange}</strong>
           <span className="chat-booking-card-cta">{card.platform} →</span>
         </div>
-        {card.backupUrl && (
-          <a
-            className="chat-booking-card-backup"
-            href={card.backupUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Backup: Booking search
-          </a>
-        )}
       </div>
     </a>
+    {card.backupUrl && (
+      <a
+        className="chat-booking-card-backup"
+        href={card.backupUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Backup: Booking search
+      </a>
+    )}
     <button
       type="button"
       className={`chat-bookmark-btn${isSaved ? ' is-saved' : ''}`}
@@ -183,10 +196,13 @@ const SUGGESTED_PROMPTS = [
   'Cheapest spring break destination?',
 ];
 
+const CHATBOT_HINT_ID = 'springbreakbot-hint';
+
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showBookmarks, setShowBookmarks] = useState(false);
+  const [thinkingStatus, setThinkingStatus] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -218,7 +234,7 @@ const ChatBot: React.FC = () => {
   }, [bookmarkedCards]);
 
   useEffect(() => {
-    if (isOpen) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (isOpen) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, isOpen]);
 
   useEffect(() => {
@@ -266,6 +282,9 @@ const ChatBot: React.FC = () => {
     setIsLoading(true);
 
     try {
+      setThinkingStatus('Looking up destination data...');
+      // secondary micro-status after a short delay to feel responsive
+      const statusTimer = setTimeout(() => setThinkingStatus('Crafting your answer...'), 1500);
       const response = await fetch('/api/chat?stream=1', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -299,6 +318,7 @@ const ChatBot: React.FC = () => {
             ...(meta.mapCards ? { mapCards: meta.mapCards } : {}),
             ...(meta.sources ? { sources: meta.sources } : {}),
             ...(meta.quickReplies ? { quickReplies: meta.quickReplies } : {}),
+            ...(meta.inlineChart ? { inlineChart: meta.inlineChart } : {}),
           };
           return next;
         });
@@ -336,12 +356,13 @@ const ChatBot: React.FC = () => {
 
         if (!dataText) return;
 
-        let payload: any = {};
+        let rawPayload: unknown = {};
         try {
-          payload = JSON.parse(dataText);
+          rawPayload = JSON.parse(dataText);
         } catch {
-          payload = {};
+          rawPayload = {};
         }
+        const payload = rawPayload as StreamEventPayload;
 
         if (eventName === 'token') {
           streamedText += String(payload.token || '');
@@ -355,7 +376,16 @@ const ChatBot: React.FC = () => {
             ...(payload.mapCards ? { mapCards: payload.mapCards } : {}),
             ...(payload.sources ? { sources: payload.sources } : {}),
             ...(payload.quickReplies ? { quickReplies: payload.quickReplies } : {}),
+            ...(payload.inlineChart ? { inlineChart: payload.inlineChart } : {}),
           };
+          updateAssistant(streamedText, meta);
+          return;
+        }
+
+        if (eventName === 'chart') {
+          // chart event payload is the InlineChartPayload itself
+          const chartPayload = rawPayload as InlineChartPayload;
+          meta = { ...(meta || {}), inlineChart: chartPayload };
           updateAssistant(streamedText, meta);
           return;
         }
@@ -365,7 +395,7 @@ const ChatBot: React.FC = () => {
         }
       };
 
-      while (true) {
+      for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
 
@@ -379,6 +409,8 @@ const ChatBot: React.FC = () => {
       }
 
       if (buffer.trim().length > 0) handleEventBlock(buffer);
+      clearTimeout((statusTimer as unknown) as number);
+      setThinkingStatus(null);
     } catch (error) {
       const errorText = error instanceof Error ? error.message : 'Unknown error';
       const isLocal =
@@ -389,6 +421,7 @@ const ChatBot: React.FC = () => {
         ? "Sorry, I couldn't connect to the server. Make sure the API is running (`npm run dev:all`)."
         : "Sorry, I couldn't connect to the chatbot API. If this is a deployed site, verify the Vercel `OPENAI_API_KEY` env var and redeploy.";
 
+      setThinkingStatus(null);
       setMessages(prev => {
         const next = [...prev];
         const lastIndex = next.length - 1;
@@ -459,6 +492,7 @@ const ChatBot: React.FC = () => {
         className="chatbot-toggle"
         onClick={() => setIsOpen(o => !o)}
         aria-label={isOpen ? 'Close chat' : 'Open SpringBreakBot chat'}
+        aria-expanded={isOpen}
       >
         {isOpen ? (
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -475,7 +509,13 @@ const ChatBot: React.FC = () => {
 
       {/* Chat window */}
       {isOpen && (
-        <div className={`chatbot-window${isFullscreen ? ' chatbot-window--fullscreen' : ''}`} role="dialog" aria-label="SpringBreakBot">
+        <div
+          className={`chatbot-window${isFullscreen ? ' chatbot-window--fullscreen' : ''}`}
+          role="dialog"
+          aria-modal="false"
+          aria-label="SpringBreakBot chat"
+          aria-describedby={CHATBOT_HINT_ID}
+        >
           {/* Header */}
           <div className="chatbot-header">
             <div className="chatbot-header-info">
@@ -487,7 +527,7 @@ const ChatBot: React.FC = () => {
             </div>
             <div className="chatbot-header-actions">
               <button
-                className="chatbot-close"
+                className="chatbot-star"
                 onClick={() => {
                   const next = !showBookmarks;
                   setShowBookmarks(next);
@@ -495,6 +535,7 @@ const ChatBot: React.FC = () => {
                 }}
                 aria-label="Toggle saved hotels"
                 title="Saved hotels"
+                aria-pressed={showBookmarks}
               >
                 ★ {bookmarkedCards.length}
               </button>
@@ -503,6 +544,7 @@ const ChatBot: React.FC = () => {
                 onClick={() => setIsFullscreen(f => !f)}
                 aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
                 title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                aria-pressed={isFullscreen}
               >
                 {isFullscreen ? (
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -529,6 +571,13 @@ const ChatBot: React.FC = () => {
               </button>
             </div>
           </div>
+
+          <p id={CHATBOT_HINT_ID} className="sr-only">
+            Type a question about budgets, hotels, or destinations. Press Enter to send, or Shift+Enter for a new line.
+          </p>
+          <p className="sr-only" aria-live="polite" role="status">
+            {thinkingStatus || ''}
+          </p>
 
           {showBookmarks && (
             <div className="chat-bookmarks-panel">
@@ -586,6 +635,25 @@ const ChatBot: React.FC = () => {
                   ) : (
                     msg.content
                   )}
+                          {msg.role === 'assistant' && msg.inlineChart && (
+                            <div className="chat-inline-chart-wrapper">
+                              <InlineChatChart {...msg.inlineChart} />
+                            </div>
+                          )}
+                          {msg.role === 'assistant' && msg.content && msg.content.trim().length > 0 && (
+                            <div className="chatbot-message-actions">
+                              <button
+                                type="button"
+                                className="chatbot-copy-btn"
+                                onClick={() => {
+                                  navigator.clipboard?.writeText(msg.content || '').then(() => trackEvent('chat_copy_response'));
+                                }}
+                                aria-label="Copy response"
+                              >
+                                Copy
+                              </button>
+                            </div>
+                          )}
                   {msg.role === 'assistant' && msg.bookingCards && msg.bookingCards.length > 0 && (
                     <div className="chat-booking-cards">
                       <p className="chat-booking-header">Hotel Options</p>
@@ -652,7 +720,7 @@ const ChatBot: React.FC = () => {
               </div>
             ))}
 
-            {isLoading && (
+            {(isLoading || Boolean(thinkingStatus)) && (
               <div className="chatbot-message chatbot-message--assistant">
                 <div className="chatbot-bubble chatbot-bubble--typing">
                   <span />
@@ -663,7 +731,7 @@ const ChatBot: React.FC = () => {
             )}
 
             {/* Suggested prompts — show only after first greeting */}
-            {messages.length === 1 && !isLoading && (
+            {messages.length === 1 && !isLoading && !thinkingStatus && (
               <div className="chatbot-suggestions">
                 {SUGGESTED_PROMPTS.map((p, i) => (
                   <button key={i} className="chatbot-suggestion-chip" onClick={() => sendMessage(p)}>
@@ -686,6 +754,8 @@ const ChatBot: React.FC = () => {
               onChange={handleTextareaChange}
               onKeyDown={handleKeyDown}
               disabled={isLoading}
+              aria-describedby={CHATBOT_HINT_ID}
+              aria-busy={isLoading || Boolean(thinkingStatus)}
               maxLength={500}
               rows={1}
             />
