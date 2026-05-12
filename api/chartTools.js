@@ -16,9 +16,11 @@ export function buildComparisonChartPayload({ chart_type, title, items, unit = '
         .filter((item) => item.label.length > 0)
     : [];
 
-  const type = chart_type === 'pie' || chart_type === 'budget_gauge' ? chart_type : 'bar';
+  const supportedTypes = new Set(['bar', 'line', 'pie', 'scatter', 'budget_gauge']);
+  const type = supportedTypes.has(chart_type) ? chart_type : 'bar';
   const payload = {
     type,
+    chartType: type,
     title: String(title || 'Comparison'),
     unit: String(unit || '$'),
     data: normalizedItems,

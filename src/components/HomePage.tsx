@@ -6,6 +6,7 @@ import { enrichDestinationRecords } from '../lib/transforms';
 
 interface HomePageProps {
   onEnter: () => void;
+  onChatEnter: () => void;
 }
 
 const BASE_CONTROLS = { budget: 500, tripLength: 3, lodgingMode: 1 };
@@ -68,7 +69,7 @@ const FEATURES = [
   },
 ];
 
-const HomePage: React.FC<HomePageProps> = ({ onEnter }) => {
+const HomePage: React.FC<HomePageProps> = ({ onEnter, onChatEnter }) => {
   const rawData = loadData();
   const enrichedData = useMemo(
     () => enrichDestinationRecords(rawData, BASE_CONTROLS),
@@ -114,7 +115,13 @@ const HomePage: React.FC<HomePageProps> = ({ onEnter }) => {
           </p>
 
           <div className="hp-hero-actions">
-            <button className="hp-cta-primary" onClick={onEnter}>
+            <button className="hp-cta-primary hp-cta-primary--chat" onClick={onChatEnter}>
+              Chat with SpringBreakBot 🌊
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </button>
+            <button className="hp-cta-secondary-btn" onClick={onEnter}>
               Start Exploring
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M5 12h14M12 5l7 7-7 7" />

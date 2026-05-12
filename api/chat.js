@@ -215,11 +215,11 @@ const tools = [
     type: 'function',
     function: {
       name: 'generate_comparison_chart',
-      description: 'Generates a small chart payload to compare numeric values for destinations or hotels (bar, pie, or budget_gauge).',
+      description: 'Generates a small chart payload to compare numeric values for destinations or hotels (bar, line, pie, scatter, or budget_gauge).',
       parameters: {
         type: 'object',
         properties: {
-          chart_type: { type: 'string', enum: ['bar', 'pie', 'budget_gauge'] },
+          chart_type: { type: 'string', enum: ['bar', 'line', 'pie', 'scatter', 'budget_gauge'] },
           title: { type: 'string' },
           items: { type: 'array', items: { type: 'object', properties: { label: { type: 'string' }, value: { type: 'number' } }, required: ['label','value'] } },
           unit: { type: 'string' },
@@ -578,7 +578,13 @@ Guidelines:
 - Mention specific attractions from the data tool results
 - Use markdown formatting: **bold** for key facts, ### for section headers, bullet lists for options
 - If the student's budget is tight, proactively suggest splitting lodging costs with friends
-- Keep responses focused and avoid lengthy prose`,
+- Keep responses focused and avoid lengthy prose
+- When the user asks comparative, budget, trend, affordability, or other numerical questions, call generate_comparison_chart so the UI can render a chart SSE event alongside your answer
+- For price comparisons across destinations, emit a bar chart with destination names and total trip costs
+- For budget over trip days, emit a line chart with trip days on the X-axis and cumulative cost on the Y-axis
+- For cost breakdown questions like hotel vs food vs transport, emit a pie chart
+- For questions like "what can I afford" with a budget, emit a bar chart filtered to affordable destinations only and sorted from cheapest to most expensive
+- Prefer chart payloads whenever the user would benefit from a visual comparison, even if you also answer in text`,
 };
 
 export default async function handler(req, res) {

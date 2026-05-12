@@ -3,6 +3,7 @@ import { loadData } from './lib/loadData';
 import { enrichDestinationRecords } from './lib/transforms';
 import { UserControls } from './lib/schema';
 import ChatBot from './components/ChatBot';
+import ChatPage from './components/ChatPage';
 import HomePage from './components/HomePage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { trackEvent } from './lib/analytics';
@@ -22,8 +23,8 @@ const App: React.FC = () => {
   // Decode URL params for initial state
   const urlState = decodeControlsFromUrl();
 
-  const [page, setPage] = useState<'home' | 'dashboard'>(
-    Object.keys(urlState).length > 0 ? 'dashboard' : 'home'
+  const [page, setPage] = useState<'home' | 'dashboard' | 'chat'>(
+    Object.keys(urlState).length > 0 ? 'dashboard' : 'chat'
   );
   const [showMethodology, setShowMethodology] = useState(false);
   const rawData = useMemo(() => loadData(), []);
@@ -90,10 +91,27 @@ const App: React.FC = () => {
   return (
     <>
       {page === 'home' ? (
-        <HomePage onEnter={() => {
-          trackEvent('enter_dashboard');
-          setPage('dashboard');
-        }} />
+        <HomePage
+          onEnter={() => {
+            trackEvent('enter_dashboard');
+            setPage('dashboard');
+          }}
+          onChatEnter={() => {
+            trackEvent('enter_chat_page');
+            setPage('chat');
+          }}
+        />
+      ) : page === 'chat' ? (
+        <ChatPage
+          onBackHome={() => {
+            trackEvent('chat_back_home');
+            setPage('home');
+          }}
+          onOpenDashboard={() => {
+            trackEvent('chat_to_dashboard');
+            setPage('dashboard');
+          }}
+        />
       ) : (
         <div className="db-page">
           {/* ── Dashboard header banner ── */}
@@ -199,7 +217,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <ChatBot />
+      {page === 'dashboard' && <ChatBot />}
     </>
   );
 };
